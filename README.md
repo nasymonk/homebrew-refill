@@ -2,7 +2,7 @@
 
 [![autobump](https://github.com/nasymonk/homebrew-tap/actions/workflows/autobump.yml/badge.svg)](https://github.com/nasymonk/homebrew-tap/actions/workflows/autobump.yml)
 
-社区维护的 Homebrew tap -- 收录官方 [homebrew-cask](https://github.com/Homebrew/homebrew-cask) 未收录、且上游作者未自建 tap 的 macOS 软件。版本由 GitHub Actions **每 3 小时**自动检测并更新，无需手动维护。
+社区维护的 Homebrew tap -- 收录官方 [homebrew-cask](https://github.com/Homebrew/homebrew-cask) 未收录、且上游作者未自建 tap 的 macOS 软件。版本由 GitHub Actions **每 1.5 小时**自动检测并更新，无需手动维护。
 
 ## 快速开始
 
@@ -48,7 +48,7 @@ brew install --cask --force <cask-name>
 
 ## 自动更新机制
 
-`.github/workflows/autobump.yml` 每 3 小时（UTC :17）自动运行，依次为每个 cask 执行对应的 bump 脚本：
+`.github/workflows/autobump.yml` 每 1.5 小时（UTC :17 与 :47 交替）自动运行，依次为每个 cask 执行对应的 bump 脚本：
 
 > 查上游最新版本 -> 下载安装包并计算 SHA256 -> 更新 cask 文件 -> 有变化时自动 commit & push
 
