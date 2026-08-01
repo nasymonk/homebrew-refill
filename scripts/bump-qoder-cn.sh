@@ -10,8 +10,16 @@ ARM_URL="https://ide.qoder.com.cn/qoder/release/lastest/QoderCN-darwin-arm64.dmg
 INTEL_URL="https://ide.qoder.com.cn/qoder/release/lastest/QoderCN-darwin-x64.dmg"
 
 # --- 1. HEAD 双架构取 ETag ---
-arm_etag=$(curl -sI --retry 2 --retry-delay 5 --max-time 30 "$ARM_URL" | grep -i '^etag:' | tr -d '\r"' | sed 's/^[Ee][Tt]ag: *//')
-intel_etag=$(curl -sI --retry 2 --retry-delay 5 --max-time 30 "$INTEL_URL" | grep -i '^etag:' | tr -d '\r"' | sed 's/^[Ee][Tt]ag: *//')
+# curl -fsSI:失败(超时/5xx)时返回非零;grep 未命中 etag 头也返回非零。
+# 两者都用管道末尾的 || true 兜住,让失败统一走到下面的报错分支打印原因,
+# 而不是被 set -e 静默吞掉(此前偶发失败只留下 exit code 1,无法定位)。
+fetch_etag() {
+  curl -fsSI --retry 2 --retry-delay 5 --max-time 30 "$1" 2>/dev/null \
+    | grep -i '^etag:' | tr -d '\r"' | sed 's/^[Ee][Tt]ag: *//' || true
+}
+
+arm_etag=$(fetch_etag "$ARM_URL")
+intel_etag=$(fetch_etag "$INTEL_URL")
 
 if [ -z "$arm_etag" ] || [ -z "$intel_etag" ]; then
   echo "failed to fetch ETag from upstream (arm='${arm_etag:-}' intel='${intel_etag:-}')" >&2
@@ -33,14 +41,19 @@ fi
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
+echo "ETags changed, downloading arm dmg (~200MB)..."
 curl -fsSL --retry 2 --retry-delay 10 --max-time 300 -o "$tmp/arm.dmg" "$ARM_URL"
+echo "downloading intel dmg (~200MB)..."
 curl -fsSL --retry 2 --retry-delay 10 --max-time 300 -o "$tmp/intel.dmg" "$INTEL_URL"
 
 # 挂载 ARM dmg 提取版本号
-vol_path=$(hdiutil attach "$tmp/arm.dmg" -nobrowse -readonly -mountrandom "$tmp" | awk 'END{print $NF}')
+if ! vol_path=$(hdiutil attach "$tmp/arm.dmg" -nobrowse -readonly -mountrandom "$tmp" | awk 'END{print $NF}'); then
+  echo "failed to mount arm dmg" >&2
+  exit 1
+fi
 app_path=$(echo "$vol_path"/*.app | head -1)
 new_ver=$(plutil -p "$app_path/Contents/Info.plist" 2>/dev/null | grep CFBundleShortVersionString | sed -E 's/.*"([^"]+)".*/\1/')
-hdiutil detach "$vol_path" -force >/dev/null 2>&1
+hdiutil detach "$vol_path" -force >/dev/null 2>&1 || true
 
 if [ -z "$new_ver" ]; then
   echo "failed to extract version from app bundle ($app_path)" >&2
