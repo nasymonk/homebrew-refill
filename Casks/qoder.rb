@@ -1,15 +1,15 @@
 cask "qoder" do
-  version "1.21.1"
+  version "1.21.2"
 
   # 上游只提供无版本号的 latest 直链，URL 永远不变；
   # 版本/sha256 由 scripts/bump-qoder.sh 依 OSS ETag 变更检测后改写。
-  # upstream-etag arm=120798583F33D3FD84B90560DAE6198F x64=23442D9081E35783C801D7980E6350CE
+  # upstream-etag arm=B266200F45039EBE0D0FABB787C526B5 x64=581306A9DD0A9E94D688BD80032E8A08
   on_arm do
-    sha256 "95aa9e7318f3c4de51424b85ccfaac5930aae643f08b43a126ea044c4cc29d57"
+    sha256 "c265841c534bf62707c7d259d81807db927b655de635507ec9f10796cca4a6e2"
     url "https://download.qoder.com/release/latest/Qoder-darwin-arm64.dmg"
   end
   on_intel do
-    sha256 "6656b4929fa415c5eae78d13e31459649609fc2414e8148d61a6088b40babc05"
+    sha256 "0c7945fdab2d7aa0ec66eaf2345f8482f3d43b2a03478ff65d245e2666c8b3ae"
     url "https://download.qoder.com/release/latest/Qoder-darwin-x64.dmg"
   end
 
