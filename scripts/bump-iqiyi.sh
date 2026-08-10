@@ -20,10 +20,19 @@ fi
 
 cur_ver=$(grep -m1 'version "' "$CASK" | sed -E 's/.*version "([^"]+)".*/\1/')
 cur_url=$(grep -m1 'url "' "$CASK" | sed -E 's/.*url "([^"]+)".*/\1/')
-
-# dmg URL 没变 → 跳过下载，上游未更新
+# dmg URL 没变 → 跳过下载。但需区分两种情况:
+# 爱奇艺常先发 App Store、离线 dmg 滞后数天(历史上多次发生),
+# 此时页面"最新版本"文案已新、而 dmg 仍是旧包。
+# 这种"渠道滞后"不是脚本故障,也不应 bump(新包还没上架),
+# 但要打印明确提示(GH Actions warning),避免误读为"上游没更新"。
 if [ "$cur_url" = "$new_url" ]; then
-  echo "already up-to-date ($cur_ver, url unchanged)"
+  page_ver=$(grep -oE '最新版本.{0,2}[0-9]+\.[0-9]+(\.[0-9]+)?' <<<"$html" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1 || true)
+  ver_key() { awk -F. '{printf "%05d%05d%05d%05d", $1, $2, $3, $4}' <<<"$1"; }
+  if [ -n "$page_ver" ] && [ "$(ver_key "$page_ver")" -gt "$(ver_key "$cur_ver")" ]; then
+    echo "::warning::上游已发布 v$page_ver(页面文案/App Store),离线 dmg 仍为 v$cur_ver(渠道滞后),暂无可 bump 内容"
+  else
+    echo "already up-to-date ($cur_ver, url unchanged)"
+  fi
   exit 0
 fi
 
