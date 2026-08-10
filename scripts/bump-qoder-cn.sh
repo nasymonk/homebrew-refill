@@ -9,13 +9,27 @@ CASK="${1:-Casks/qoder-cn.rb}"
 ARM_URL="https://ide.qoder.com.cn/qoder/release/lastest/QoderCN-darwin-arm64.dmg"
 INTEL_URL="https://ide.qoder.com.cn/qoder/release/lastest/QoderCN-darwin-x64.dmg"
 
-# --- 1. HEAD 双架构取 ETag ---
-# curl -fsSI:失败(超时/5xx)时返回非零;grep 未命中 etag 头也返回非零。
-# 两者都用管道末尾的 || true 兜住,让失败统一走到下面的报错分支打印原因,
+# --- 1. HEAD 双架构取变更信号 ---
+# 优先取 etag;缺失时回退 content-md5(2026-08 起 ide.qoder.com.cn 经
+# Tengine CDN 的部分边缘节点开始间歇性不返回 etag 头——本次 CI 报错根因)。
+# 对 OSS Normal 对象 etag == content-md5 的 hex(已实测验证),base64 解码
+# 转 hex 后与历史记录格式一致,可无缝比较。
+# curl -fsSI:失败(超时/5xx)时返回非零;grep 未命中也返回非零,
+# 统一 || true 兜住,让失败走到下面的报错分支打印原因,
 # 而不是被 set -e 静默吞掉(此前偶发失败只留下 exit code 1,无法定位)。
 fetch_etag() {
-  curl -fsSI --retry 2 --retry-delay 5 --max-time 30 "$1" 2>/dev/null \
-    | grep -i '^etag:' | tr -d '\r"' | sed 's/^[Ee][Tt]ag: *//' || true
+  local headers etag md5b64
+  headers=$(curl -fsSI --retry 2 --retry-delay 5 --max-time 30 "$1" 2>/dev/null || true)
+  etag=$(printf '%s\n' "$headers" | grep -i '^etag:' | tr -d '\r"' | sed 's/^[Ee][Tt]ag: *//' || true)
+  if [ -n "$etag" ]; then
+    printf '%s' "$etag"
+    return 0
+  fi
+  md5b64=$(printf '%s\n' "$headers" | grep -i '^content-md5:' | tr -d '\r' | sed 's/^[Cc]ontent-[Mm][Dd]5: *//' || true)
+  if [ -n "$md5b64" ]; then
+    printf '%s' "$md5b64" | base64 -d 2>/dev/null | xxd -p -c 256 | tr '[:lower:]' '[:upper:]' || true
+  fi
+  return 0
 }
 
 arm_etag=$(fetch_etag "$ARM_URL")
