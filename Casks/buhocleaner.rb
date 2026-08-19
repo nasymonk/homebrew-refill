@@ -1,10 +1,10 @@
 cask "buhocleaner" do
-  version "1.16.2"
-  sha256 "ecfb2f81bf2732663a422981714ab6b343418bd2748081cc57f2b466c4af2d0e"
+  version "1.16.3"
+  sha256 "1a864c9455bf5dab2a1d0d8494d704b77906ad328a81ee2f1a48835bb2c5ad49"
 
   # dmg 文件名含构建号 (buhocleaner_b<build>.dmg),与版本号无关。
   # 版本/链接/sha 由 scripts/bump-buhocleaner.sh 解析 Sparkle appcast 改写。
-  url "https://drbuho.net/buhocleaner/buhocleaner_b256.dmg"
+  url "https://drbuho.net/buhocleaner/buhocleaner_b259.dmg"
   name "BuhoCleaner"
   desc "Mac cleaner and optimizer"
   homepage "https://www.drbuho.com/buhocleaner"
