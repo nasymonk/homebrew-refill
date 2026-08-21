@@ -5,16 +5,16 @@
 **为 Homebrew 续杯 · 社区驱动的 macOS Cask 补充源**
 
 <p>
-  <a href="https://github.com/nasymonk/homebrew-tap/actions/workflows/autobump.yml">
-    <img src="https://github.com/nasymonk/homebrew-tap/actions/workflows/autobump.yml/badge.svg" alt="CI 自动检测状态" />
+  <a href="https://github.com/nasymonk/homebrew-refill/actions/workflows/autobump.yml">
+    <img src="https://github.com/nasymonk/homebrew-refill/actions/workflows/autobump.yml/badge.svg" alt="CI 自动检测状态" />
   </a>
-  <a href="https://github.com/nasymonk/homebrew-tap/blob/main/LICENSE">
+  <a href="https://github.com/nasymonk/homebrew-refill/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/许可证-MIT-blue.svg" alt="MIT License" />
   </a>
-  <a href="https://github.com/nasymonk/homebrew-tap/issues">
-    <img src="https://img.shields.io/github/issues/nasymonk/homebrew-tap" alt="未解决 Issues" />
+  <a href="https://github.com/nasymonk/homebrew-refill/issues">
+    <img src="https://img.shields.io/github/issues/nasymonk/homebrew-refill" alt="未解决 Issues" />
   </a>
-  <a href="https://github.com/nasymonk/homebrew-tap/pulls">
+  <a href="https://github.com/nasymonk/homebrew-refill/pulls">
     <img src="https://img.shields.io/badge/PRs-欢迎提交-brightgreen.svg" alt="欢迎贡献 PR" />
   </a>
 </p>
@@ -41,8 +41,8 @@
 ### 1. 添加 Tap
 
 ```bash
-brew tap nasymonk/tap
-brew trust nasymonk/tap   # Homebrew 4.x+ 首次添加第三方 Tap 时建议执行
+brew tap nasymonk/refill
+brew trust nasymonk/refill   # Homebrew 4.x+ 首次添加第三方 Tap 时建议执行
 ```
 
 ### 2. 安装软件
@@ -97,7 +97,7 @@ brew uninstall --cask --zap <软件名>
 
 ### 申请收录
 如果您有希望通过 Homebrew 管理但官方源尚未收录的 macOS 软件：  
-👉 **[点击前往提交软件收录请求](https://github.com/nasymonk/homebrew-tap/issues/new?template=software_request.yml)**
+👉 **[点击前往提交软件收录请求](https://github.com/nasymonk/homebrew-refill/issues/new?template=software_request.yml)**
 
 ---
 

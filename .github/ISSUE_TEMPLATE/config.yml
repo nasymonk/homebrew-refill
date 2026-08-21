@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: 📋 查看已有软件收录列表 (Cask List)
-    url: https://github.com/nasymonk/homebrew-tap#-现有收录软件
+    url: https://github.com/nasymonk/homebrew-refill#-现有收录软件
     about: 提交申请前，建议先在此确认软件是否已被收录
   - name: 💡 快速贡献新软件指南 (Contribution Guide)
-    url: https://github.com/nasymonk/homebrew-tap#-如何为本-tap-贡献软件
+    url: https://github.com/nasymonk/homebrew-refill#-如何为本-tap-贡献软件
     about: 欢迎直接提交 Pull Request，了解如何编写 Cask 与自动更新脚本
