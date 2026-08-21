@@ -1,25 +1,27 @@
 <div align="center">
 
-# REFILL
+# ☕ Refill
 
-**为 Homebrew 续杯 · 社区驱动的 macOS Cask 补充源**
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=20&pause=1200&color=FBBF24&center=true&vCenter=true&width=600&lines=%E4%B8%BA+Homebrew+%E7%BB%AD%E6%9D%AF;Refill+your+Homebrew;%E7%A4%BE%E5%8C%BA%E9%A9%B1%E5%8A%A8%E7%9A%84+macOS+Cask+%E8%A1%A5%E5%85%85%E6%BA%90;%E5%AE%98%E6%96%B9%E6%9C%A8%E6%A1%B6%E6%B2%A1%E8%A3%85%E4%B8%8B%E7%9A%84%E5%A5%BD%E8%BD%AF%E4%BB%B6%EF%BC%8C%E8%AE%A9+Refill+%E7%BB%99%E4%BD%A0%E7%BB%AD%E6%BB%A1">
+    <source media="(prefers-color-scheme: light)" srcset="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=20&pause=1200&color=B45309&center=true&vCenter=true&width=600&lines=%E4%B8%BA+Homebrew+%E7%BB%AD%E6%9D%AF;Refill+your+Homebrew;%E7%A4%BE%E5%8C%BA%E9%A9%B1%E5%8A%A8%E7%9A%84+macOS+Cask+%E8%A1%A5%E5%85%85%E6%BA%90;%E5%AE%98%E6%96%B9%E6%9C%A8%E6%A1%B6%E6%B2%A1%E8%A3%85%E4%B8%8B%E7%9A%84%E5%A5%BD%E8%BD%AF%E4%BB%B6%EF%BC%8C%E8%AE%A9+Refill+%E7%BB%99%E4%BD%A0%E7%BB%AD%E6%BB%A1">
+    <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&weight=600&size=20&pause=1200&color=B45309&center=true&vCenter=true&width=600&lines=%E4%B8%BA+Homebrew+%E7%BB%AD%E6%9D%AF;Refill+your+Homebrew;%E7%A4%BE%E5%8C%BA%E9%A9%B1%E5%8A%A8%E7%9A%84+macOS+Cask+%E8%A1%A5%E5%85%85%E6%BA%90;%E5%AE%98%E6%96%B9%E6%9C%A8%E6%A1%B6%E6%B2%A1%E8%A3%85%E4%B8%8B%E7%9A%84%E5%A5%BD%E8%BD%AF%E4%BB%B6%EF%BC%8C%E8%AE%A9+Refill+%E7%BB%99%E4%BD%A0%E7%BB%AD%E6%BB%A1" alt="Refill Slogan Typing Animation" />
+  </picture>
+</p>
 
-```bash
-brew tap nasymonk/refill
-```
-
-<p>
+<p align="center">
+  <a href="https://github.com/nasymonk/homebrew-refill">
+    <img src="https://img.shields.io/badge/Homebrew-Tap-FBB040?style=for-the-badge&logo=homebrew&logoColor=white" alt="Homebrew Tap" />
+  </a>
   <a href="https://github.com/nasymonk/homebrew-refill/actions/workflows/autobump.yml">
-    <img src="https://github.com/nasymonk/homebrew-refill/actions/workflows/autobump.yml/badge.svg" alt="CI 自动检测状态" />
+    <img src="https://img.shields.io/badge/CI-Hourly_Auto_Bump-2088FF?style=for-the-badge&logo=githubactions&logoColor=white" alt="Hourly CI" />
   </a>
   <a href="https://github.com/nasymonk/homebrew-refill/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/许可证-MIT-black.svg" alt="MIT License" />
-  </a>
-  <a href="https://github.com/nasymonk/homebrew-refill/issues">
-    <img src="https://img.shields.io/github/issues/nasymonk/homebrew-refill?color=black" alt="未解决 Issues" />
+    <img src="https://img.shields.io/badge/License-MIT-44CC11?style=for-the-badge" alt="MIT License" />
   </a>
   <a href="https://github.com/nasymonk/homebrew-refill/pulls">
-    <img src="https://img.shields.io/badge/PRs-欢迎提交-black.svg" alt="欢迎贡献 PR" />
+    <img src="https://img.shields.io/badge/PRs-Welcome-black?style=for-the-badge" alt="PRs Welcome" />
   </a>
 </p>
 
@@ -33,10 +35,10 @@ brew tap nasymonk/refill
 
 ## 核心特性
 
-- **补充官方空白** — 专注收录主流中文软件、优质独立应用与常用开发客户端，填补官方生态空白。
-- **每小时全自动巡检** — 云端 CI 实时追踪官网、GitHub Release 及 Sparkle 动态，上游发版即自动挂载校验构建。
-- **直连官方原源** — 所有安装包直连官方 OSS / CDN / GitHub，不经过第三方二次打包，严格计算并比对 SHA256 校验码。
-- **纯净规范无残留** — 严格遵循 Homebrew Cask 语法规范，完整配置 `zap` 规则，深度卸载不留配置垃圾。
+- ▸ **补充官方空白** — 专注收录主流中文软件、优质独立应用与常用开发客户端，填补官方生态空白。
+- ▸ **每小时全自动巡检** — 云端 CI 实时追踪官网、GitHub Releases 及 Sparkle 动态，上游发版即自动挂载校验构建。
+- ▸ **直连官方原源** — 所有安装包直连官方 OSS / CDN / GitHub，不经过第三方二次打包，严格计算并比对 SHA256 校验码。
+- ▸ **纯净规范无残留** — 严格遵循 Homebrew Cask 语法规范，完整配置 `zap` 规则，深度卸载不留配置垃圾。
 
 ---
 
@@ -127,19 +129,27 @@ brew uninstall --cask --zap <软件名>
 
 ## 自动化更新架构
 
-Refill 通过 GitHub Actions（`.github/workflows/autobump.yml`）每小时定时运行：
+Refill 通过 GitHub Actions 每小时定时运行：
 
 ```text
-上游官网 / GitHub Releases / Sparkle Appcast
-                     │
-                     ▼ (每小时定时巡检)
-       捕获版本号变更 / ETag 更新 / 解析页面
-                     │
-                     ▼
-      临时下载安装包提取版本并校验 SHA256
-                     │
-                     ▼
-       自动更新 Casks/*.rb 并提交推送到 main 分支
+┌────────────────────────────────────────────────────────┐
+│ 上游官网 / GitHub Releases / Sparkle Appcast           │
+└──────────────────────────┬─────────────────────────────┘
+                           │ 每小时自动巡检
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│ 捕获版本号变更 / ETag 更新 / 解析页面                  │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│ 临时下载安装包提取版本并校验 SHA256                    │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│ 自动更新 Casks/*.rb 并提交推送到 main 分支             │
+└────────────────────────────────────────────────────────┘
 ```
 
 终端用户无需关注更新细节，日常只需 `brew upgrade` 即可时刻保持最新版本。
