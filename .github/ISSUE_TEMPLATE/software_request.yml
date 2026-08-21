@@ -1,59 +1,95 @@
-name: 软件收录请求
-description: 推荐一个 macOS 软件收录到本 tap
-title: "[收录请求] "
-labels: ["enhancement"]
+name: 📦 软件收录请求 (Software Request)
+description: 推荐或申请收录一款官方 Homebrew 尚未收录的 macOS 软件
+title: "[Request]: <软件名称>"
+labels: ["cask-request", "needs-triage"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢为本开源 Tap 推荐软件！在提交前，请先确认该软件符合收录原则。
+
   - type: checkboxes
     id: pre-check
     attributes:
-      label: 提交前确认
+      label: 提交前自查（Checklist）
       options:
-        - label: 该软件**未被** [homebrew-cask](https://formulae.brew.sh/cask/) 官方收录（可通过 `brew search <name>` 确认）
+        - label: 已使用 `brew search <name>` 确认官方 [homebrew-cask](https://formulae.brew.sh/cask/) **未收录**该软件（或官方源已废弃/地区受限）
           required: true
-        - label: 该软件上游作者**没有**自建 Homebrew tap
+        - label: 该软件官方/作者**未提供**自建的 Homebrew tap
+          required: true
+        - label: 软件来源正规合法，为公开分发的 macOS 原生应用（.dmg / .zip / .pkg）
           required: true
 
   - type: input
     id: app-name
     attributes:
-      label: 软件名称
-      placeholder: 例如: Example App
+      label: 软件名称 (App Name)
+      placeholder: 例如：iQIYI / 爱奇艺，或 BuhoCleaner
     validations:
       required: true
 
   - type: input
     id: app-url
     attributes:
-      label: 官网或下载页地址
-      placeholder: https://example.com/download
+      label: 官方网站 / 下载首页 (Homepage / Download URL)
+      placeholder: https://example.com 或 https://example.com/download
     validations:
       required: true
 
   - type: input
-    id: update-url
+    id: download-url
     attributes:
-      label: 版本更新源地址（如有）
-      description: GitHub Releases 页面、Sparkle appcast URL、或包含版本号的下载页
-      placeholder: 例如: https://github.com/owner/repo/releases 或 appcast XML URL
+      label: 直接安装包链接（如有）(Direct Download URL)
+      description: 软件最新版本的直接下载直链（.dmg / .zip / .pkg）
+      placeholder: https://example.com/download/app-v1.0.0.dmg
     validations:
       required: false
 
-  - type: dropdown
-    id: update-source
+  - type: checkboxes
+    id: app-arch
     attributes:
-      label: 更新源类型（如已知）
+      label: 支持的架构平台 (Supported Architectures)
       options:
-        - GitHub Releases
-        - Sparkle appcast
-        - 仅官网下载页
-        - 不确定
+        - label: Apple Silicon (ARM64 / M系列芯片)
+        - label: Intel (x86_64)
+        - label: Universal Binary (通用二进制)
+
+  - type: dropdown
+    id: update-strategy
+    attributes:
+      label: 自动更新源特征 (Upstream Release Channel)
+      description: 有助于维护者编写 GitHub Actions 自动更新脚本
+      options:
+        - GitHub Releases (GitHub API 检测)
+        - Sparkle Appcast (XML feed / RSS 检测)
+        - 固定最新直链 (OSS / CDN ETag / MD5 检测)
+        - 官网 HTML 解析 (网页抓取版本号)
+        - 其他 / 暂不清楚
+    validations:
+      required: true
+
+  - type: input
+    id: update-feed
+    attributes:
+      label: 版本更新源地址（如已知）
+      description: 例如 Sparkle appcast.xml 链接、GitHub 仓库地址等
+      placeholder: https://example.com/appcast.xml
     validations:
       required: false
 
   - type: textarea
-    id: context
+    id: app-description
     attributes:
-      label: 补充说明
-      placeholder: 任何有助于收录的信息，例如：为什么官方 cask 未收录、该软件的特点、macOS 兼容性等
+      label: 软件简述与收录理由 (Description & Motivation)
+      placeholder: 简要说明该软件的功能定位，以及为什么推荐将其收录到本 Tap。
     validations:
-      required: false
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: 社区协作意愿 (Willingness to help)
+      options:
+        - label: 🙋 我愿意提交 Pull Request 直接贡献该 Cask 及自动更新脚本
+        - label: 🧪 待收录后，我愿意在本地 macOS 环境协助测试安装与更新
+

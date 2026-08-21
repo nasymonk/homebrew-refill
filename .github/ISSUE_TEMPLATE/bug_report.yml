@@ -1,78 +1,72 @@
-name: 问题反馈
-description: 报告 cask 安装失败、版本过旧、校验错误等问题
-title: "[问题] "
-labels: ["bug"]
+name: 🐛 故障与问题反馈 (Bug Report)
+description: 反馈 Cask 安装失败、版本未自动更新、SHA256 校验错误、下载失效等问题
+title: "[Bug]: <软件名称> - <问题简述>"
+labels: ["bug", "needs-triage"]
 body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈问题！请先运行 `brew update && brew upgrade` 确保本地 Tap 已同步最新提交。
+
   - type: checkboxes
     id: pre-check
     attributes:
-      label: 提交前确认
+      label: 提交前排查（Checklist）
       options:
-        - label: 已运行 `brew update` 并重试
+        - label: 已运行 `brew update` 同步最新的 Cask 定义并重试
+          required: true
+        - label: 网络连接正常（已确认上游下载链接非因本地代理或 DNS 故障导致无法访问）
           required: true
 
   - type: input
     id: cask-name
     attributes:
-      label: 涉及的 Cask
-      placeholder: 例如: aio-coding-hub
+      label: 目标 Cask 名称 (Cask Name)
+      placeholder: 例如：iqiyi / buhocleaner / aio-coding-hub
     validations:
       required: true
-
-  - type: input
-    id: upstream-url
-    attributes:
-      label: 官网链接 / 下载链接
-      placeholder: 便于维护者定位上游资源
-    validations:
-      required: false
 
   - type: dropdown
     id: issue-type
     attributes:
-      label: 问题类型
+      label: 问题类型 (Issue Type)
       options:
-        - 安装 / 升级失败
-        - 版本过旧（未自动更新）
-        - SHA256 校验失败
-        - 下载链接失效
-        - 卸载问题
-        - 其他
+        - 📥 安装 / 升级执行报错 (Install / Upgrade Failed)
+        - 🔄 版本过旧 / 自动更新未触发 (Outdated Version)
+        - 🔐 SHA256 校验不匹配 (Checksum Mismatch)
+        - 🚫 上游下载链接 404 / 失效 (Download URL 404)
+        - 🗑️ 卸载 / 残留清理异常 (Uninstall / Zap Issue)
+        - ❓ 其他异常 (Other)
     validations:
       required: true
 
   - type: textarea
     id: description
     attributes:
-      label: 问题描述
-      placeholder: 请详细描述遇到的问题
+      label: 详细现象与复现过程 (Problem Description)
+      placeholder: 请详细描述遇到的错误现象、预期行为与实际行为。
     validations:
       required: true
 
   - type: textarea
     id: logs
     attributes:
-      label: 终端输出
-      description: 粘贴相关的命令和输出
+      label: 终端输出与错误日志 (Terminal Output / Logs)
+      description: 请粘贴完整的执行命令及终端输出日志（包含完整的错误堆栈）
       placeholder: |
-        $ brew install --cask nasymonk/tap/xxx
-        Error: ...
+        $ brew install --cask <cask-name> --verbose
+        ==> Downloading ...
+        Error: Checksum mismatch...
       render: shell
     validations:
       required: false
 
   - type: input
-    id: homebrew-version
+    id: env-info
     attributes:
-      label: Homebrew 版本
-      placeholder: 运行 `brew --version` 获取
+      label: 系统与环境信息 (Environment Info)
+      description: macOS 版本、芯片架构及 Homebrew 版本
+      placeholder: 例如：macOS Sequoia 15.3 (Apple M3 Pro), Homebrew 4.4.x
     validations:
       required: false
 
-  - type: input
-    id: macos-version
-    attributes:
-      label: macOS 版本与芯片
-      placeholder: 例如: macOS 15.4 / Apple M4
-    validations:
-      required: false
