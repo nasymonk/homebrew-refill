@@ -70,8 +70,8 @@ brew uninstall --cask --zap <软件名>
 | 软件 (Cask) | 说明 | 架构支持 | 自动更新源 | 官方主页 | 一键安装命令 |
 | :--- | :--- | :---: | :--- | :--- | :--- |
 | **`iqiyi`** | 爱奇艺 macOS 官方高清客户端 | 通用 (Universal) | 官网下载页 + 镜像挂载校验 | [爱奇艺官网](https://app.iqiyi.com/mac/player/index.html) | `brew install --cask iqiyi` |
+| **`qoder`** | Qoder 阿里 AI 编程 IDE 国际版 | M系列 / Intel | OSS ETag 检测 + 镜像挂载校验 | [Qoder 官网](https://qoder.com/) | `brew install --cask qoder` |
 | **`buhocleaner`** | BuhoCleaner 专业 Mac 清理优化工具 | 通用 (Universal) | Sparkle Appcast (XML Feed) | [Dr.Buho 官网](https://www.drbuho.com/buhocleaner) | `brew install --cask buhocleaner` |
-| **`aio-coding-hub`** | 本地 AI 编程网关，统一代理 coding CLI | M系列 / Intel | GitHub Releases API 自动拉取 | [GitHub 仓库](https://github.com/dyndynjyxa/aio-coding-hub) | `brew install --cask aio-coding-hub` |
 
 > *清单持续扩充中，若你常用的 Mac 软件在官方源找不到，欢迎提交申请。*
 
