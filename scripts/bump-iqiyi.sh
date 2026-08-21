@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Bump the iqiyi cask by scraping its download page.
+# Bump the iqiyi cask by scraping its download page and inspecting the DMG.
 # 页面上的"最新版本"文案不可信（爱奇艺偶尔改文案但未上传新 dmg），
 # 因此以 dmg 内 App Bundle 的 CFBundleShortVersionString 为权威版本。
+# 注意：爱奇艺 dmg 下载地址固定为 iQIYIMedia_271.dmg（271 为品牌谐音），
+# 上游更新为原地覆写，因此不可根据 URL 字符串是否变化来判断是否有更新。
 set -euo pipefail
 
 CASK="${1:-Casks/iqiyi.rb}"
@@ -20,23 +22,19 @@ fi
 
 cur_ver=$(grep -m1 'version "' "$CASK" | sed -E 's/.*version "([^"]+)".*/\1/')
 cur_url=$(grep -m1 'url "' "$CASK" | sed -E 's/.*url "([^"]+)".*/\1/')
-# dmg URL 没变 → 跳过下载。但需区分两种情况:
-# 爱奇艺常先发 App Store、离线 dmg 滞后数天(历史上多次发生),
-# 此时页面"最新版本"文案已新、而 dmg 仍是旧包。
-# 这种"渠道滞后"不是脚本故障,也不应 bump(新包还没上架),
-# 但要打印明确提示(GH Actions warning),避免误读为"上游没更新"。
-if [ "$cur_url" = "$new_url" ]; then
-  page_ver=$(grep -oE '最新版本.{0,2}[0-9]+\.[0-9]+(\.[0-9]+)?' <<<"$html" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1 || true)
-  ver_key() { awk -F. '{printf "%05d%05d%05d%05d", $1, $2, $3, $4}' <<<"$1"; }
-  if [ -n "$page_ver" ] && [ "$(ver_key "$page_ver")" -gt "$(ver_key "$cur_ver")" ]; then
-    echo "::warning::上游已发布 v$page_ver(页面文案/App Store),离线 dmg 仍为 v$cur_ver(渠道滞后),暂无可 bump 内容"
-  else
-    echo "already up-to-date ($cur_ver, url unchanged)"
-  fi
+page_ver=$(grep -oE '最新版本.{0,2}[0-9]+\.[0-9]+(\.[0-9]+)?' <<<"$html" | grep -oE '[0-9]+\.[0-9]+(\.[0-9]+)?' | head -1 || true)
+
+ver_key() {
+  awk -F. '{printf "%05d%05d%05d%05d", $1, $2, $3, $4}' <<<"$1"
+}
+
+# 若 URL 没变且页面文案版本号未增加，则直接视为无需更新（避免每小时无谓下载 dmg）
+if [ "$cur_url" = "$new_url" ] && [ -n "$page_ver" ] && [ "$(ver_key "$page_ver")" -le "$(ver_key "$cur_ver")" ]; then
+  echo "already up-to-date ($cur_ver, page_ver=$page_ver)"
   exit 0
 fi
 
-# dmg URL 变了 → 下载、提取真实版本、计算 sha256
+# 页面提示新版本或 URL 发生变化 → 下载 dmg、挂载提取真实版本并计算 sha256
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 curl -fsSL -o "$tmp/app.dmg" "$new_url"
 
@@ -51,11 +49,17 @@ if [ -z "$new_ver" ]; then
   exit 1
 fi
 
-sha=$(shasum -a 256 "$tmp/app.dmg" | cut -d' ' -f1)
-
-if [ "$cur_ver" = "$new_ver" ]; then
-  echo "dmg url changed but version unchanged ($cur_ver), updating sha256/url only"
+# 区分渠道滞后情况：页面文案已更新，但离线 dmg 实际仍是旧版本
+if [ "$(ver_key "$new_ver")" -le "$(ver_key "$cur_ver")" ] && [ "$cur_url" = "$new_url" ]; then
+  if [ -n "$page_ver" ] && [ "$(ver_key "$page_ver")" -gt "$(ver_key "$cur_ver")" ]; then
+    echo "::warning::上游已发布 v$page_ver(页面文案/App Store),离线 dmg 仍为 v$new_ver(渠道滞后),暂无可 bump 内容"
+  else
+    echo "already up-to-date ($cur_ver)"
+  fi
+  exit 0
 fi
+
+sha=$(shasum -a 256 "$tmp/app.dmg" | cut -d' ' -f1)
 
 sed -i.bak -E \
   -e "s|version \"[^\"]+\"|version \"$new_ver\"|" \

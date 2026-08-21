@@ -1,9 +1,9 @@
 cask "iqiyi" do
-  version "17.6.1"
-  sha256 "5a59b71f7d24894b39c319d6d93a4c06147ef5eef8aaad707775177036c210f4"
+  version "17.8.0"
+  sha256 "a312b5da007508d1f3d78565429490d558fab93f07cc1f28463898dfba8d1981"
 
-  # URL 文件名是内部构建号 (iQIYIMedia_NNN.dmg),与版本号无关,
-  # 故 url 整条硬编码;升级由 scripts/bump-iqiyi.sh 抓下载页改写。
+  # URL 文件名固定为 (iQIYIMedia_271.dmg),与版本号无关(271 为品牌谐音),
+  # 升级由 scripts/bump-iqiyi.sh 抓下载页与包体校验后改写。
   url "https://static-d.iqiyi.com/ext/common/iQIYIMedia_271.dmg"
   name "爱奇艺"
   name "iQIYI"
