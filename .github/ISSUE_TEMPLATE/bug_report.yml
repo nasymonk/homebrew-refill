@@ -1,6 +1,6 @@
-name: 🐛 故障与问题反馈 (Bug Report)
-description: 反馈 Cask 安装失败、版本未自动更新、SHA256 校验错误、下载失效等问题
-title: "[Bug]: <软件名称> - <问题简述>"
+name: 🐛 故障与问题反馈
+description: 反馈软件安装失败、版本未自动更新、SHA256 校验错误、下载失效等问题
+title: "[问题] <软件名称> - <问题简述>"
 labels: ["bug", "needs-triage"]
 body:
   - type: markdown
@@ -11,9 +11,9 @@ body:
   - type: checkboxes
     id: pre-check
     attributes:
-      label: 提交前排查（Checklist）
+      label: 提交前排查
       options:
-        - label: 已运行 `brew update` 同步最新的 Cask 定义并重试
+        - label: 已运行 `brew update` 同步最新的软件定义并重试
           required: true
         - label: 网络连接正常（已确认上游下载链接非因本地代理或 DNS 故障导致无法访问）
           required: true
@@ -21,40 +21,40 @@ body:
   - type: input
     id: cask-name
     attributes:
-      label: 目标 Cask 名称 (Cask Name)
-      placeholder: 例如：iqiyi / buhocleaner / aio-coding-hub
+      label: 软件名称
+      placeholder: 例如：iqiyi、buhocleaner、aio-coding-hub
     validations:
       required: true
 
   - type: dropdown
     id: issue-type
     attributes:
-      label: 问题类型 (Issue Type)
+      label: 问题类型
       options:
-        - 📥 安装 / 升级执行报错 (Install / Upgrade Failed)
-        - 🔄 版本过旧 / 自动更新未触发 (Outdated Version)
-        - 🔐 SHA256 校验不匹配 (Checksum Mismatch)
-        - 🚫 上游下载链接 404 / 失效 (Download URL 404)
-        - 🗑️ 卸载 / 残留清理异常 (Uninstall / Zap Issue)
-        - ❓ 其他异常 (Other)
+        - 📥 安装或升级执行报错
+        - 🔄 版本过旧 / 自动更新未触发
+        - 🔐 SHA256 校验不匹配
+        - 🚫 上游下载链接 404 或失效
+        - 🗑️ 卸载残留清理异常
+        - ❓ 其他异常
     validations:
       required: true
 
   - type: textarea
     id: description
     attributes:
-      label: 详细现象与复现过程 (Problem Description)
-      placeholder: 请详细描述遇到的错误现象、预期行为与实际行为。
+      label: 详细现象与复现过程
+      placeholder: 请详细描述遇到的错误现象、预期结果与实际结果
     validations:
       required: true
 
   - type: textarea
     id: logs
     attributes:
-      label: 终端输出与错误日志 (Terminal Output / Logs)
+      label: 终端输出与错误日志
       description: 请粘贴完整的执行命令及终端输出日志（包含完整的错误堆栈）
       placeholder: |
-        $ brew install --cask <cask-name> --verbose
+        $ brew install --cask <软件名> --verbose
         ==> Downloading ...
         Error: Checksum mismatch...
       render: shell
@@ -64,9 +64,10 @@ body:
   - type: input
     id: env-info
     attributes:
-      label: 系统与环境信息 (Environment Info)
+      label: 系统与环境信息
       description: macOS 版本、芯片架构及 Homebrew 版本
-      placeholder: 例如：macOS Sequoia 15.3 (Apple M3 Pro), Homebrew 4.4.x
+      placeholder: 例如：macOS 15.3 (M3 Pro 芯片), Homebrew 4.4.x
     validations:
       required: false
+
 

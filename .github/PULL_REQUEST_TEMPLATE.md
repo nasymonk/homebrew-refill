@@ -1,26 +1,27 @@
-### 变更说明 (Description)
+### 变更类型
 
-- [ ] 新增 Cask: `<cask-name>`
-- [ ] 修复 / 更新已有 Cask: `<cask-name>`
-- [ ] 优化 CI / 自动化更新脚本
-- [ ] 文档更新
-
----
-
-### 软件基本信息 (App Info)
-
-- **软件名称**: 
-- **官方网站**: 
-- **下载地址**: 
-- **版本号**: 
+- [ ] 📦 新增软件收录（新 Cask）
+- [ ] 🔧 修复 / 升级已有软件
+- [ ] ⚡ 优化 CI 自动化更新脚本
+- [ ] 📝 文档或说明更新
 
 ---
 
-### 本地测试与验证 (Local Verification)
+### 软件基本信息
 
-请勾选已完成的自测项：
-- [ ] 已在本地运行 `brew install --cask ./Casks/<cask-name>.rb` 验证安装成功
-- [ ] 已验证 App 能够正常启动与运行
-- [ ] 已测试 `brew uninstall --cask ./Casks/<cask-name>.rb`（以及 `--zap`）清理正常
-- [ ] 如新增自动更新脚本，已在本地执行 `bash scripts/bump-<cask-name>.sh` 验证无误
-- [ ] 已在 `.github/workflows/autobump.yml` 与 `README.md` 中添加对应配置与说明
+- **软件名称**：
+- **官方网站**：
+- **下载地址**：
+- **当前版本**：
+
+---
+
+### 本地测试与验证
+
+提交 PR 前请在本地完成以下测试并勾选：
+- [ ] 已在本地运行 `brew install --cask ./Casks/<软件名>.rb` 验证安装成功
+- [ ] 已验证应用安装后能正常打开并运行
+- [ ] 已测试 `brew uninstall --cask ./Casks/<软件名>.rb`（含 `--zap` 参数）能正常卸载与清理配置
+- [ ] 如包含自动更新脚本，已在本地执行 `bash scripts/bump-<软件名>.sh` 测试成功
+- [ ] 已在 `.github/workflows/autobump.yml` 与 `README.md` 中添加对应配置及软件说明
+
