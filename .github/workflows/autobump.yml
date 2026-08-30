@@ -23,6 +23,9 @@ jobs:
       - name: Bump buhocleaner
         run: bash scripts/bump-buhocleaner.sh Casks/buhocleaner.rb
 
+      - name: Bump doubao-work
+        run: bash scripts/bump-doubao-work.sh Casks/doubao-work.rb
+
       - name: Commit & push if changed
         run: |
           if [ -n "$(git status --porcelain)" ]; then
