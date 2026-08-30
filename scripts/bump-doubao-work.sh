@@ -20,12 +20,6 @@ fi
 new_url="${new_url_raw%%\?*}"
 
 cur_ver=$(grep -m1 'version "' "$CASK" 2>/dev/null | sed -E 's/.*version "([^"]+)".*/\1/' || true)
-cur_url=$(grep -m1 'url "' "$CASK" 2>/dev/null | sed -E 's/.*url "([^"]+)".*/\1/' || true)
-
-if [ "$cur_url" = "$new_url" ] && [ -n "$cur_ver" ]; then
-  echo "already up-to-date ($cur_ver, url unchanged)"
-  exit 0
-fi
 
 tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 curl -fsSL -o "$tmp/app.dmg" "$new_url"
@@ -41,14 +35,41 @@ if [ -z "$new_ver" ]; then
   exit 1
 fi
 
-sha=$(shasum -a 256 "$tmp/app.dmg" | cut -d' ' -f1)
+if [ "$cur_ver" = "$new_ver" ]; then
+  echo "already up-to-date ($cur_ver)"
+  exit 0
+fi
 
-sed -i.bak -E \
-  -e "s|version \"[^\"]+\"|version \"$new_ver\"|" \
-  -e "s|sha256 \"[^\"]+\"|sha256 \"$sha\"|" \
-  -e "s|url \"https://[^\"]+\"|url \"$new_url\"|" \
-  "$CASK" && rm -f "$CASK.bak"
+# Fetch official CDN checksums for both architectures
+arm_url="https://lf-flow-web-cdn.doubao.com/obj/flow-doubao/doubao_pc/${new_ver}/DoubaoWork_Arm64_${new_ver}.dmg"
+intel_url="https://lf-flow-web-cdn.doubao.com/obj/flow-doubao/doubao_pc/${new_ver}/DoubaoWork_X64_${new_ver}.dmg"
+
+echo "calculating checksums for $new_ver..."
+sha_arm=$(curl -fsSL "$arm_url" | shasum -a 256 | cut -d' ' -f1)
+sha_intel=$(curl -fsSL "$intel_url" | shasum -a 256 | cut -d' ' -f1)
+
+if [ -z "$sha_arm" ] || [ -z "$sha_intel" ]; then
+  echo "failed to compute sha256 for CDN artifacts" >&2
+  exit 1
+fi
+
+python3 -c '
+import sys, re
+cask_file = sys.argv[1]
+new_ver = sys.argv[2]
+sha_arm = sys.argv[3]
+sha_intel = sys.argv[4]
+
+with open(cask_file, "r", encoding="utf-8") as f:
+    content = f.read()
+
+content = re.sub(r'\''version "[^"]+"\'', f'\''version "{new_ver}"\'', content)
+content = re.sub(r'\''sha256 arm:\s*"[^"]+",\s*intel:\s*"[^"]+"\'', f'\''sha256 arm:   "{sha_arm}",\n         intel: "{sha_intel}"\'', content)
+
+with open(cask_file, "w", encoding="utf-8") as f:
+    f.write(content)
+' "$CASK" "$new_ver" "$sha_arm" "$sha_intel"
 
 echo "bumped ${cur_ver:-none} -> $new_ver"
-echo "url=$new_url"
-echo "sha256=$sha"
+echo "sha256_arm=$sha_arm"
+echo "sha256_intel=$sha_intel"

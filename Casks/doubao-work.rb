@@ -1,9 +1,11 @@
 cask "doubao-work" do
-  version "2.27.6"
-  sha256 "efb36a53856134b529a18095be17cfb04c6e900fca4b80f4d5eca1528dc3d110"
+  arch arm: "Arm64", intel: "X64"
 
-  # URL 由字节跳动分发接口下发,升级由 scripts/bump-doubao-work.sh 自动检测并改写
-  url "https://lf9-apk.ugapk.cn/package/pc/doubao_work_desktop/2027006/doubao_work_desktop_webdaoliu_modal_pcwork_macos_v2027006_eb8e_1787999262.dmg"
+  version "2.27.6"
+  sha256 arm:   "c67b736f8b3bfa8907686076d03645f221ff960527bdd3c14793b9322349c159",
+         intel: "59bd5c2a4e0df624443ec0aeb37b2919d932df2ebd42262eff3ab20a6b2b00ab"
+
+  url "https://lf-flow-web-cdn.doubao.com/obj/flow-doubao/doubao_pc/#{version}/DoubaoWork_#{arch}_#{version}.dmg"
   name "豆包工作"
   name "Doubao Work"
   name "DoubaoWork"
@@ -17,10 +19,10 @@ cask "doubao-work" do
 
   zap trash: [
     "~/Library/Application Scripts/com.work.pc.doubao.FinderSyncExtension",
-    "~/Library/Application Support/DoubaoWork",
     "~/Library/Application Support/com.work.pc.doubao",
-    "~/Library/Caches/DoubaoWork",
+    "~/Library/Application Support/DoubaoWork",
     "~/Library/Caches/com.work.pc.doubao",
+    "~/Library/Caches/DoubaoWork",
     "~/Library/Containers/com.work.pc.doubao.FinderSyncExtension",
     "~/Library/HTTPStorages/com.work.pc.doubao",
     "~/Library/Preferences/com.work.pc.doubao.helper.plist",
