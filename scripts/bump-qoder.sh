@@ -1,79 +1,73 @@
 #!/usr/bin/env bash
-# Bump the qoder cask by detecting OSS ETag changes and extracting version from DMG.
-# 上游只有无版本号 latest 直链，以 HEAD 请求 OSS ETag 检测变更；
-# 版本号取自 dmg 内 App Bundle 的 CFBundleShortVersionString（同 iqiyi 手法）。
+# Bump the qoder cask by querying the official in-app update API.
+# 上游自 1.25.0 起改名 "Qoder IDE" 并更换发布通道：
+# 旧桶 download.qoder.com/release/latest/*.dmg 已永久停更（停在 1.24.2）；
+# 新版本以带版本号 zip 发布于 qoder-ide.oss-accelerate.aliyuncs.com/release/<ver>/。
+# 权威版本源为应用内更新接口（同时返回 arm64 zip 的 sha256，可做防篡改校验）。
 set -euo pipefail
 
 CASK="${1:-Casks/qoder.rb}"
+UPDATE_API="https://center.qoder.sh/algo/api/update/darwin-arm64/stable/latest"
 
-ARM_URL="https://download.qoder.com/release/latest/Qoder-darwin-arm64.dmg"
-INTEL_URL="https://download.qoder.com/release/latest/Qoder-darwin-x64.dmg"
+# --- 1. 查询更新接口，取最新版本号 / arm64 zip 地址 / 官方 sha256 ---
+# 更新接口偶尔连接抖动（SSL_ERROR_SYSCALL），用较长重试间隔兜底；
+# 失败时本小时跳过，下一小时调度自动重试，不影响其它 cask（工作流已 continue-on-error）。
+api_json=$(curl -fsSL --retry 3 --retry-delay 15 --retry-all-errors --max-time 30 "$UPDATE_API?version=0.0.0")
 
-# --- 1. HEAD 双架构取变更信号 ---
-# 优先取 etag;缺失时回退 content-md5(同 bump-qoder-cn.sh:OSS Normal
-# 对象 etag == content-md5 的 hex,防御 CDN/OSS 节点间歇性不返回 etag)。
-# 函数恒定返回 0,失败统一走到下面的报错分支打印原因,不被 set -e 静默吞掉。
-fetch_etag() {
-  local headers etag md5b64
-  headers=$(curl -fsSI --retry 2 --retry-delay 5 --max-time 30 "$1" 2>/dev/null || true)
-  etag=$(printf '%s\n' "$headers" | grep -i '^etag:' | tr -d '\r"' | sed 's/^[Ee][Tt]ag: *//' || true)
-  if [ -n "$etag" ]; then
-    printf '%s' "$etag"
-    return 0
-  fi
-  md5b64=$(printf '%s\n' "$headers" | grep -i '^content-md5:' | tr -d '\r' | sed 's/^[Cc]ontent-[Mm][Dd]5: *//' || true)
-  if [ -n "$md5b64" ]; then
-    printf '%s' "$md5b64" | base64 -d 2>/dev/null | xxd -p -c 256 | tr '[:lower:]' '[:upper:]' || true
-  fi
-  return 0
-}
+new_ver=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["name"])' <<<"$api_json")
+arm_url=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["url"])' <<<"$api_json")
+arm_sha_api=$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("sha256hash") or "")' <<<"$api_json")
 
-arm_etag=$(fetch_etag "$ARM_URL")
-intel_etag=$(fetch_etag "$INTEL_URL")
-
-if [ -z "$arm_etag" ] || [ -z "$intel_etag" ]; then
-  echo "failed to fetch ETag from upstream (arm='${arm_etag:-}' intel='${intel_etag:-}')" >&2
+if [ -z "$new_ver" ] || [ -z "$arm_url" ]; then
+  echo "failed to parse update API response: $api_json" >&2
   exit 1
 fi
-
-# --- 2. 读取上一次 ETag ---
-prev_etag_line=$(grep '^  # upstream-etag ' "$CASK" 2>/dev/null || true)
-prev_arm=$(echo "$prev_etag_line" | grep -o 'arm=[^ ]*' | cut -d= -f2)
-prev_intel=$(echo "$prev_etag_line" | grep -o 'x64=[^ ]*' | cut -d= -f2)
-
-# --- 3. 均未变 → 跳过 ---
-if [ "$arm_etag" = "$prev_arm" ] && [ "$intel_etag" = "$prev_intel" ]; then
-  echo "already up-to-date (ETags unchanged)"
-  exit 0
-fi
-
-# --- 4. 下载双架构 dmg、提取版本、计算 sha ---
-tmp=$(mktemp -d)
-trap 'rm -rf "$tmp"' EXIT
-
-curl -fsSL --max-time 300 -o "$tmp/arm.dmg" "$ARM_URL"
-curl -fsSL --max-time 300 -o "$tmp/intel.dmg" "$INTEL_URL"
-
-# 挂载 ARM dmg 提取版本号
-vol_path=$(hdiutil attach "$tmp/arm.dmg" -nobrowse -readonly -mountrandom "$tmp" | awk 'END{print $NF}')
-app_path=$(echo "$vol_path"/*.app | head -1)
-new_ver=$(plutil -p "$app_path/Contents/Info.plist" 2>/dev/null | grep CFBundleShortVersionString | sed -E 's/.*"([^"]+)".*/\1/')
-hdiutil detach "$vol_path" -force >/dev/null 2>&1
-
-if [ -z "$new_ver" ]; then
-  echo "failed to extract version from app bundle ($app_path)" >&2
-  exit 1
-fi
-
-arm_sha=$(shasum -a 256 "$tmp/arm.dmg" | cut -d' ' -f1)
-intel_sha=$(shasum -a 256 "$tmp/intel.dmg" | cut -d' ' -f1)
 
 cur_ver=$(grep -m1 'version "' "$CASK" | sed -E 's/.*version "([^"]+)".*/\1/')
 
-# --- 5. 改写 cask ---
+# --- 2. 版本未变 → 跳过 ---
+if [ "$new_ver" = "$cur_ver" ]; then
+  echo "already up-to-date ($cur_ver)"
+  exit 0
+fi
+
+# --- 3. 推导 x64 zip 地址（同 release 路径，仅架构后缀不同）并探活 ---
+intel_url="${arm_url/Qoder-darwin-arm64.zip/Qoder-darwin-x64.zip}"
+if ! curl -fsSI --retry 2 --max-time 30 "$intel_url" >/dev/null; then
+  echo "intel zip not reachable: $intel_url" >&2
+  exit 1
+fi
+
+# --- 4. 下载双架构 zip 并计算 sha256 ---
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+curl -fsSL --retry 2 --max-time 600 -o "$tmp/arm.zip" "$arm_url"
+curl -fsSL --retry 2 --max-time 600 -o "$tmp/intel.zip" "$intel_url"
+
+arm_sha=$(shasum -a 256 "$tmp/arm.zip" | cut -d' ' -f1)
+intel_sha=$(shasum -a 256 "$tmp/intel.zip" | cut -d' ' -f1)
+
+# 防御：本地计算的 arm sha 须与更新接口返回值一致（防 CDN 不一致/篡改）
+if [ -n "$arm_sha_api" ] && [ "$arm_sha" != "$arm_sha_api" ]; then
+  echo "arm zip sha256 mismatch: local=$arm_sha api=$arm_sha_api" >&2
+  exit 1
+fi
+
+# --- 5. 从 zip 提取顶层 .app 名（上游有改名前科，如 Qoder.app → Qoder IDE.app）---
+app_name=$(unzip -Z1 "$tmp/arm.zip" | grep -oE '^[^/]+\.app' | head -1 || true)
+if [ -z "$app_name" ]; then
+  echo "failed to locate .app inside arm zip" >&2
+  exit 1
+fi
+
+# --- 6. 改写 cask（url 使用 #{version} 插值，只需改 version / sha256 / app）---
 
 # version
 sed -i.bak -E "s/version \"[^\"]+\"/version \"$new_ver\"/" "$CASK" && rm -f "$CASK.bak"
+
+# app stanza
+sed -i.bak -E "s|app \"[^\"]+\"|app \"$app_name\"|" "$CASK" && rm -f "$CASK.bak"
 
 # sha256: 分 on_arm / on_intel 块替换
 awk -v arm="$arm_sha" -v intel="$intel_sha" '
@@ -86,24 +80,8 @@ awk -v arm="$arm_sha" -v intel="$intel_sha" '
   { print }
 ' "$CASK" > "$CASK.tmp" && mv "$CASK.tmp" "$CASK"
 
-# upstream-etag 注释行
-if grep -q '^  # upstream-etag ' "$CASK"; then
-  sed -i.bak -E "s/^  # upstream-etag .*/  # upstream-etag arm=${arm_etag} x64=${intel_etag}/" "$CASK" && rm -f "$CASK.bak"
-else
-  # 兼容：首次运行 cask 中无 etag 行时插入
-  awk -v arm="$arm_etag" -v intel="$intel_etag" '
-    /^  version "/ && !done {
-      print
-      print "  # upstream-etag arm=" arm " x64=" intel
-      done=1
-      next
-    }
-    { print }
-  ' "$CASK" > "$CASK.tmp" && mv "$CASK.tmp" "$CASK"
-fi
-
-echo "bumped $cur_ver -> $new_ver"
+echo "bumped $cur_ver -> $new_ver (app: $app_name)"
+echo "arm_url=$arm_url"
+echo "intel_url=$intel_url"
 echo "arm_sha=$arm_sha"
 echo "intel_sha=$intel_sha"
-echo "arm_etag=$arm_etag"
-echo "intel_etag=$intel_etag"

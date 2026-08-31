@@ -12,11 +12,13 @@ PAGE="https://app.iqiyi.com/mac/player/index.html"
 html=$(curl -fsSL "$PAGE")
 
 # dmg 地址：static-d.iqiyi.com 域名的 iQIYIMedia_<build>.dmg
-new_url=$(grep -oE 'https://static-d\.iqiyi\.com/ext/common/iQIYIMedia_[0-9]+\.dmg' <<<"$html" | head -1)
+# 注意：|| true 防御——pipefail 下 grep 无匹配会使赋值直接以 1 退出，
+# 跳过下方友好报错分支（此前在 GitHub Actions 上表现为无日志静默失败）。
+new_url=$(grep -oE 'https://static-d\.iqiyi\.com/ext/common/iQIYIMedia_[0-9]+\.dmg' <<<"$html" | head -1 || true)
 
 if [ -z "$new_url" ]; then
   echo "failed to parse dmg url from page" >&2
-  echo "possible page structure change, check: $PAGE" >&2
+  echo "possible page structure change or regional blocking, check: $PAGE" >&2
   exit 1
 fi
 
