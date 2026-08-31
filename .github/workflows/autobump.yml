@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   bump:
-    runs-on: macos-latest   # iqiyi/qoder bump 脚本依赖 hdiutil/plutil/unzip
+    runs-on: macos-latest   # bump 脚本依赖 hdiutil/plutil/unzip
     steps:
       - uses: actions/checkout@v4
 
@@ -21,6 +21,14 @@ jobs:
 
       - name: Bump qoder
         run: bash scripts/bump-qoder.sh Casks/qoder.rb
+        continue-on-error: true
+
+      - name: Bump qoder-cn
+        run: bash scripts/bump-qoder-cn.sh Casks/qoder-cn.rb
+        continue-on-error: true
+
+      - name: Bump qoder-ide
+        run: bash scripts/bump-qoder-ide.sh Casks/qoder-ide.rb
         continue-on-error: true
 
       - name: Bump buhocleaner
