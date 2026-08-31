@@ -1,30 +1,31 @@
 cask "qoder" do
-  version "1.24.2"
+  version "1.27.1"
 
-  # 上游只提供无版本号的 latest 直链，URL 永远不变；
-  # 版本/sha256 由 scripts/bump-qoder.sh 依 OSS ETag 变更检测后改写。
-  # upstream-etag arm=51B3B9786DF0DFBD2A2FE21FC36679D6-239 x64=CCCDA82F04F281206C10BBA0474C1293-252
+  # 上游自 1.25.0 起改名 "Qoder IDE" 并更换发布通道：旧 latest dmg 直链已永久停更，
+  # 新版本以带版本号 zip 发布于 qoder-ide OSS 桶；
+  # 版本/sha256/app 名由 scripts/bump-qoder.sh 依官方更新接口（center.qoder.sh）改写。
   on_arm do
-    sha256 "3bba435a1446226524df8441acaa2dfec11c01d02997b3c5bd2272c8c90ccb65"
-    url "https://download.qoder.com/release/latest/Qoder-darwin-arm64.dmg"
+    sha256 "9f11be817f3fe1e38378b3642811dd880ce9804ba3962c248a7d90ad94021047"
+    url "https://qoder-ide.oss-accelerate.aliyuncs.com/release/#{version}/Qoder-darwin-arm64.zip"
   end
   on_intel do
-    sha256 "31d4fd7325d7e1e3d8a082cfc2f025ac23c4096a9466d532d1aa1d317b7cf485"
-    url "https://download.qoder.com/release/latest/Qoder-darwin-x64.dmg"
+    sha256 "6f74163a72adff3498c9689cfd6307a71ea057aeac20ee22ec2fe19a0df9e45a"
+    url "https://qoder-ide.oss-accelerate.aliyuncs.com/release/#{version}/Qoder-darwin-x64.zip"
   end
 
-  name "Qoder"
+  name "Qoder IDE"
   desc "Agentic coding IDE from Alibaba"
   homepage "https://qoder.com/"
 
   livecheck do
-    skip "上游仅提供无版本号 latest 直链，无公开版本源"
+    url "https://center.qoder.sh/algo/api/update/darwin-arm64/stable/latest?version=0.0.0"
+    regex(/"name":"(\d+(?:\.\d+)+)"/i)
   end
 
   # Qoder 为 VS Code fork，内置自更新；安装后若实际未发现自更新机制则移除本行
   auto_updates true
 
-  app "Qoder.app"
+  app "Qoder IDE.app"
 
   # bundle ID 按实际安装后目录为准，以下为推测值（Task 6 安装后验证修正）
   zap trash: [
