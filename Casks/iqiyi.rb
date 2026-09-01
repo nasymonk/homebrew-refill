@@ -18,9 +18,13 @@ cask "iqiyi" do
 
   app "爱奇艺.app"
 
+  # 2026-09-01 实测：爱奇艺为沙盒应用，残留全在 Containers/Application Scripts，
+  # 旧的 Application Support/Caches 猜测路径不存在（仅保留 plist 一条以备偏好域）。
   zap trash: [
-    "~/Library/Application Support/com.iqiyi.player",
-    "~/Library/Caches/com.iqiyi.player",
+    "~/Library/Application Scripts/com.iqiyi.player",
+    "~/Library/Application Scripts/com.iqiyi.player.QYUserNotification",
+    "~/Library/Containers/com.iqiyi.player",
+    "~/Library/Containers/com.iqiyi.player.QYUserNotification",
     "~/Library/Preferences/com.iqiyi.player.plist",
     "~/Library/Saved Application State/com.iqiyi.player.savedState",
   ]

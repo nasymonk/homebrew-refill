@@ -28,11 +28,22 @@ cask "qoder-ide" do
 
   app "Qoder IDE.app"
 
-  # bundle ID 按实际安装后目录为准，以下为推测值（Task 6 安装后验证修正）
+  # zap 路径 2026-09-01 依卸载 1.x（bundle ID com.qoder.ide）时的实测残留：
+  # 数据目录为 Application Support/Qoder；自更新走 Squirrel，留下 ShipIt 缓存与 ByHost plist
+  # （LaunchAgents/com.qoder.ide.ShipIt.plist 在卸载时刻未捕获，可能随版本变化）。
   zap trash: [
+    "~/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/com.qoder.ide.sfl*",
     "~/Library/Application Support/Qoder",
+    "~/Library/Caches/com.qoder.ide",
+    "~/Library/Caches/com.qoder.ide.ShipIt",
     "~/Library/Caches/Qoder",
+    "~/Library/HTTPStorages/com.qoder.ide",
+    "~/Library/HTTPStorages/com.qoder.ide.binarycookies",
+    "~/Library/HTTPStorages/Qoder",
+    "~/Library/LaunchAgents/com.qoder.ide.ShipIt.plist",
+    "~/Library/Preferences/ByHost/com.qoder.ide.ShipIt.*.plist",
     "~/Library/Preferences/com.qoder.ide.plist",
+    "~/Library/Preferences/Qoder.plist",
     "~/Library/Saved Application State/com.qoder.ide.savedState",
   ]
 end

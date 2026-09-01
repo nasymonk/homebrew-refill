@@ -27,9 +27,12 @@ cask "qoder" do
 
   app "Qoder.app"
 
-  # bundle ID 为 com.qoder.app；zap 路径为推测值，安装后验证修正
+  # zap 路径 2026-09-01 在 0.1.x 真机实测：数据目录为 Application Support/com.qoder.app.stable；
+  # Caches/com.qoder.app 与 SavedState 实测未生成（zap 容忍缺失路径，保留以备后患）。
+  # 注意：会话/记忆/登录态在 ~/.qoder、~/.qodersec、~/.qoder-cli、~/.qmind/.qoder，
+  # 属用户数据且与 CLI 共用，惯例不 zap，需要时手动删除。
   zap trash: [
-    "~/Library/Application Support/Qoder",
+    "~/Library/Application Support/com.qoder.app.stable",
     "~/Library/Caches/com.qoder.app",
     "~/Library/Preferences/com.qoder.app.plist",
     "~/Library/Saved Application State/com.qoder.app.savedState",

@@ -16,11 +16,13 @@ cask "buhocleaner" do
 
   app "BuhoCleaner.app"
 
+  # 2026-09-01 实测补充 StatusBarMenu 偏好；App Support/SavedState 未生成但按惯例保留
   zap trash: [
     "~/Library/Application Support/com.drbuho.BuhoCleaner",
     "~/Library/Caches/com.drbuho.BuhoCleaner",
     "~/Library/HTTPStorages/com.drbuho.BuhoCleaner",
     "~/Library/Preferences/com.drbuho.BuhoCleaner.plist",
+    "~/Library/Preferences/com.drbuho.BuhoCleaner.StatusBarMenu.plist",
     "~/Library/Saved Application State/com.drbuho.BuhoCleaner.savedState",
   ]
 end

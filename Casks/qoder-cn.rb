@@ -38,11 +38,16 @@ cask "qoder-cn" do
   # 内置自更新
   auto_updates true
 
-  # bundle ID 为 com.qodercn.app；zap 路径为推测值，安装后验证修正
+  # zap 路径 2026-09-01 依本机实跑并清理时的实测结果：
+  # 数据目录为 Application Support/com.qodercn.app.stable；安装器壳会留下 com.qodercn.installer.plist；
+  # app 本体还会创建 ~/.qoder-cn、~/.qmind/.qoder-cn、~/Documents/QoderCN（用户数据，惯例不 zap）。
+  # Caches/SavedState 实测未生成，保留以兼容未来版本。
   zap trash: [
-    "~/Library/Application Support/Qoder CN",
+    "~/Library/Application Support/com.apple.sharedfilelist/com.apple.LSSharedFileList.ApplicationRecentDocuments/com.qodercn.app.sfl*",
+    "~/Library/Application Support/com.qodercn.app.stable",
     "~/Library/Caches/com.qodercn.app",
     "~/Library/Preferences/com.qodercn.app.plist",
+    "~/Library/Preferences/com.qodercn.installer.plist",
     "~/Library/Saved Application State/com.qodercn.app.savedState",
   ]
 end
