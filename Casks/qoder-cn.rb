@@ -1,18 +1,18 @@
 cask "qoder-cn" do
-  version "0.1.3"
+  version "0.1.4"
 
   # Qoder CN 全新形态（与 "Qoder CN IDE" 1.2x 线是不同产品）。
   # 上游 zip 是引导安装器外壳：真正的应用在其内部
   # Resources/payload/Qoder-CN-<version>-mac-<arch>.zip，
   # preflight 直接解出 Qoder CN.app，跳过安装器。
   # 版本/sha256 由 scripts/bump-qoder-cn.sh 依 OSS ETag 变更检测后改写。
-  # upstream-etag arm=3734D76864650EF6A7A96300ADCA71CA x64=7520A4B641C1127EA8D6B3AF360F9E5D
+  # upstream-etag arm=9C66E13C3B656C2C721979A7F6790998 x64=389DBAAE1DD5CF2F3674F998CADA47D1
   on_arm do
-    sha256 "234b9785a4bf599a65fbf11ac1ae215ed9c1355b422b27c7fed37d243ae480c8"
+    sha256 "373118fa59bd2f31dd1ff0690a87a91bfcb5b81fa38ff4b578c8f7695eb21070"
     url "https://qoder-app.oss-cn-beijing.aliyuncs.com/qoder-app/releases/latest/Qoder-CN-Installer-mac-arm64.zip"
   end
   on_intel do
-    sha256 "f80bbfab0889e48e1a2923629250f147479bec38441e2c2e09089a5d42b1c5ca"
+    sha256 "6f3d4207e2122c323cf793753d731aa711685214bd5ed120e25745b160aa320c"
     url "https://qoder-app.oss-cn-beijing.aliyuncs.com/qoder-app/releases/latest/Qoder-CN-Installer-mac-x64.zip"
   end
 
@@ -33,7 +33,7 @@ cask "qoder-cn" do
     FileUtils.rm_rf(installer)
   end
 
-  app "Qoder CN.app"
+  app "Qoder CN Installer.app"
 
   # 内置自更新
   auto_updates true
