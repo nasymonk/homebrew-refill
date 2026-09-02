@@ -1,18 +1,18 @@
 cask "workbuddy" do
-  version "5.4.7.37521366"
+  version "5.5.1.37570276"
 
   # 腾讯 WorkBuddy（workbuddy.cn，Electron）；更新通道为官方 /v2/update 接口
   # （download.codebuddy.cn 桶，路径含 saas/架构/完整版本号），
   # url 尾部 -<8位构建标记> 随构建变化，版本/sha256/url 由 scripts/bump-workbuddy.sh 依接口返回值改写。
   on_arm do
-    sha256 "c056c1ee0b6b1f002ddc08179743a821afe9c84110b45982c8bdd60ac7964afe"
+    sha256 "d9ec5cd21a2c6887073da17018a0070c625ed72674c7617304717de94b39b798"
 
-    url "https://download.codebuddy.cn/workbuddy/saas/darwin-arm64/WorkBuddy-darwin-arm64-5.4.7.37521366-b148bd1d.zip"
+    url "https://download.codebuddy.cn/workbuddy/saas/darwin-arm64/WorkBuddy-darwin-arm64-5.5.1.37570276-9af62480.zip"
   end
   on_intel do
-    sha256 "fbeca76ea4f7a92076c14717fd65a6249047f9cb1701bb70f10dbd4bdee0ba26"
+    sha256 "0e635f21bdf89a9ed523a418ee2063bcee6683133b19986abdc906aaf3c6d53f"
 
-    url "https://download.codebuddy.cn/workbuddy/saas/darwin-x64/WorkBuddy-darwin-x64-5.4.7.37521366-b148bd1d.zip"
+    url "https://download.codebuddy.cn/workbuddy/saas/darwin-x64/WorkBuddy-darwin-x64-5.5.1.37570276-9af62480.zip"
   end
 
   name "WorkBuddy"
