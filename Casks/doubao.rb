@@ -1,14 +1,20 @@
 cask "doubao" do
   # 2026-08-31: macOS 27 上 hdiutil 无法挂载官方未签名 DMG，改用自托管 zip（universal）
-  version "2.19.9"
-  sha256 "4b045c19700f3046be942c251be880ce15c143ac0f6c3650f81e51ad2a717d7e"
+  version "2.27.12"
+  sha256 "ef90b4b7bfe3076a8a1cd0ad80655c096fa63219c87214ef6a381b5604e97b98"
 
   url "https://doc.rootfly.xyz/doubao-work/Doubao_universal_#{version}.zip"
-
   name "豆包"
   name "Doubao"
   desc "AI chat assistant"
   homepage "https://www.doubao.com/chat/"
+
+  livecheck do
+    url "https://www.doubao.com/service/settings/v3/?device_platform=web&brand=doubao&aid=582465"
+    strategy :json do |json|
+      json.dig("data", "settings", "saman_update_address", "version")
+    end
+  end
 
   auto_updates true
   depends_on macos: :big_sur
