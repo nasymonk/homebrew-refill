@@ -1,15 +1,15 @@
 cask "qoder-cn" do
-  version "0.1.8"
+  version "0.2.1"
 
   # Qoder CN 全新形态（与 "Qoder CN IDE" 1.2x 线是不同产品）。
   # 版本/sha256 由 scripts/bump-qoder-cn.sh 改写。
   on_arm do
-    sha256 "4f771a300d4cab31eab7c04033353363dfa783fb4d395bb0b797aa2311611a5b"
+    sha256 "2a4aee534170083846dbc6c81cffd899705c07235063586d3a14f1c13a29fd88"
 
     url "https://qoder-app.oss-cn-beijing.aliyuncs.com/qoder-app/releases/#{version}/Qoder-CN-mac-arm64.zip"
   end
   on_intel do
-    sha256 "3c1eb5c3fedca1572f999149f98b959b5bb3c790f96f23f89c129b0310d3643b"
+    sha256 "0e2a6e734ec94e7ccfd78d68eb1d7908701f6b55e80352eeae44fe12c2219fa3"
 
     url "https://qoder-app.oss-cn-beijing.aliyuncs.com/qoder-app/releases/#{version}/Qoder-CN-mac-x64.zip"
   end
