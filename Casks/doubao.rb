@@ -1,9 +1,10 @@
 cask "doubao" do
-  # 2026-08-31: macOS 27 上 hdiutil 无法挂载官方未签名 DMG，改用自托管 zip（universal）
-  version "2.27.12"
-  sha256 "ef90b4b7bfe3076a8a1cd0ad80655c096fa63219c87214ef6a381b5604e97b98"
+  # macOS 26/27 上 hdiutil 无法挂载官方未签名 DMG，改用自托管 zip（universal）；
+  # 更新由 scripts/bump-doubao.sh 重打包并上传 ACS 后改写（CI macOS runner 定时巡检）。
+  version "2.29.10"
+  sha256 "792fd3da95a36cfc5a063a6f0a7302e4f4f093a834a79703cb774f8ceb63cf77"
 
-  url "https://doc.rootfly.xyz/doubao-work/Doubao_universal_#{version}.zip"
+  url "https://doc.rootfly.xyz/refill/doubao/Doubao_universal_#{version}.zip"
   name "豆包"
   name "Doubao"
   desc "AI chat assistant"

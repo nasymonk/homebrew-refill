@@ -10,12 +10,48 @@ permissions:
 
 jobs:
   bump:
-    runs-on: macos-latest   # bump 脚本依赖 hdiutil/plutil/unzip
+    runs-on: macos-latest   # 重打包依赖 hdiutil/ditto/codesign，必须用 macOS runner
+    env:
+      # bump-*.sh 通过该 SSH 别名把重打的 zip 上传到 ACS（别名在下方 SSH 配置步骤写入 ~/.ssh/config）
+      ACS_HOST: acs-host
     steps:
       - uses: actions/checkout@v4
 
-      # 各 cask 独立 bump，单个失败（如上游页面结构变化、网络封锁）不阻塞其余
+      # 配置到 ACS 的免密 SSH（仅重打包型 cask 需要：doubao / iqiyi）。
+      # 私钥放在仓库 Secret ACS_SSH_KEY，绝不入库；公钥需提前加入 ACS 的 authorized_keys。
+      # 未配置该 Secret 的 fork 上会安全跳过，不影响其余直链 cask。
+      - name: Configure SSH to ACS
+        env:
+          ACS_SSH_KEY: ${{ secrets.ACS_SSH_KEY }}
+        run: |
+          if [ -z "$ACS_SSH_KEY" ]; then echo "ACS_SSH_KEY 未配置，重打包型 cask 将跳过"; exit 0; fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$ACS_SSH_KEY" > ~/.ssh/id_ed25519_ci
+          chmod 600 ~/.ssh/id_ed25519_ci
+          ssh-keyscan -H -t ed25519,rsa 8.130.151.172 >> ~/.ssh/known_hosts 2>/dev/null
+          cat > ~/.ssh/config <<'EOF'
+          Host acs-host
+            HostName 8.130.151.172
+            User root
+            IdentityFile ~/.ssh/id_ed25519_ci
+            IdentitiesOnly yes
+          EOF
+          chmod 600 ~/.ssh/config
+          ssh acs-host 'echo "ACS SSH 连通: $(hostname)"'
+
+      # 各 cask 独立 bump，单个失败（上游页面变化、网络封锁等）不阻塞其余。
+      # 重打包型（doubao/iqiyi）用 NO_COMMIT=1，交给末尾统一步骤提交。
+      - name: Bump doubao
+        env:
+          NO_COMMIT: "1"
+          ACS_DIR: /srv/refill/doubao
+        run: bash scripts/bump-doubao.sh Casks/doubao.rb
+        continue-on-error: true
+
       - name: Bump iqiyi
+        env:
+          NO_COMMIT: "1"
+          ACS_DIR: /srv/refill/iqiyi
         run: bash scripts/bump-iqiyi.sh Casks/iqiyi.rb
         continue-on-error: true
 
