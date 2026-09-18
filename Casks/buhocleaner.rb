@@ -1,6 +1,6 @@
 cask "buhocleaner" do
-  version "1.16.4"
-  sha256 "3f587be5b6c550c087c076660645167194c233daf4153a47723d3b35ba48b3bd"
+  version "1.17.0"
+  sha256 "2d81835d2e0c8dead2a53d9f1ab44777ff4ac4a8c2e57aec410de6149bee4b1e"
 
   # dmg 文件名含构建号 (buhocleaner_b<build>.dmg),与版本号无关。
   # 版本/链接/sha 由 scripts/bump-buhocleaner.sh 解析 Sparkle appcast 改写。
