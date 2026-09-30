@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # 配置到 ACS 的免密 SSH（仅重打包型 cask 需要：doubao / iqiyi）。
+      # 配置到 ACS 的免密 SSH（仅重打包型 cask 需要：iqiyi）。
       # 私钥放在仓库 Secret ACS_SSH_KEY，绝不入库；公钥需提前加入 ACS 的 authorized_keys。
       # 未配置该 Secret 的 fork 上会安全跳过，不影响其余直链 cask。
       - name: Configure SSH to ACS
@@ -40,14 +40,7 @@ jobs:
           ssh acs-host 'echo "ACS SSH 连通: $(hostname)"'
 
       # 各 cask 独立 bump，单个失败（上游页面变化、网络封锁等）不阻塞其余。
-      # 重打包型（doubao/iqiyi）用 NO_COMMIT=1，交给末尾统一步骤提交。
-      - name: Bump doubao
-        env:
-          NO_COMMIT: "1"
-          ACS_DIR: /srv/refill/doubao
-        run: bash scripts/bump-doubao.sh Casks/doubao.rb
-        continue-on-error: true
-
+      # 重打包型（iqiyi）用 NO_COMMIT=1，交给末尾统一步骤提交。
       - name: Bump iqiyi
         env:
           NO_COMMIT: "1"
