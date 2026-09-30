@@ -75,6 +75,10 @@ jobs:
         run: bash scripts/bump-buhocleaner.sh Casks/buhocleaner.rb
         continue-on-error: true
 
+      - name: Bump deepseek-harness
+        run: bash scripts/bump-deepseek-harness.sh Casks/deepseek-harness.rb
+        continue-on-error: true
+
       - name: Commit & push if changed
         run: |
           if [ -n "$(git status --porcelain)" ]; then

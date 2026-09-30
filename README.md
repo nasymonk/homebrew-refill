@@ -78,6 +78,7 @@ brew uninstall --cask --zap <软件名>
 | **`qoder-ide`** | Qoder IDE 阿里 AI 编程 IDE | M系列 / Intel | 更新接口 + OSS 校验（CI 每小时） | [Qoder 官网](https://qoder.com/) | `brew install --cask qoder-ide` |
 | **`workbuddy`** | WorkBuddy 腾讯 AI 办公助手 | M系列 / Intel | CodeBuddy 更新接口（CI 每小时） | [WorkBuddy 官网](https://www.workbuddy.cn/) | `brew install --cask workbuddy` |
 | **`buhocleaner`** | BuhoCleaner 专业 Mac 清理优化工具 | 通用 (Universal) | Sparkle Appcast (XML Feed)（CI 每小时） | [Dr.Buho 官网](https://www.drbuho.com/buhocleaner) | `brew install --cask buhocleaner` |
+| **`deepseek-harness`** | DeepSeek Harness 官方 AI 智能体桌面端 | 仅 Apple 芯片 (M系列) | 官方 electron-builder YAML 巡检（CI 每小时） | [DeepSeek Harness 官网](https://www.deepseek.com/harness/) | `brew install --cask deepseek-harness` |
 
 > ¹ 官方 `homebrew-cask` 也有一个同名但严重滞后的 `doubao`（其声明 `auto_updates true` 被官方自动更新机器人跳过）。为避免歧义，安装/升级本 Tap 的豆包请使用全限定名 `nasymonk/refill/doubao`。
 >
@@ -89,7 +90,7 @@ brew uninstall --cask --zap <软件名>
 
 所有 cask 由 GitHub Actions 的 **macOS runner 每小时**巡检一次，分两类：
 
-- **直链型**（`qoder`、`qoder-cn`、`qoder-ide`、`workbuddy`、`buhocleaner`）：上游本就是 zip 或可正常挂载的 DMG，CI 只比对版本、改写 `version/sha256` 后提交，安装时直接从官方地址下载。
+- **直链型**（`deepseek-harness`、`qoder`、`qoder-cn`、`qoder-ide`、`workbuddy`、`buhocleaner`）：上游本就是 zip 或可正常挂载的 DMG，CI 只比对版本、改写 `version/sha256` 后提交，安装时直接从官方地址下载。
 - **重打包镜像型**（`doubao`、`iqiyi`）：官方安装包是 DMG，在 macOS 26/27 上 Homebrew 会因「未签名镜像」或「只读卷清理 .DS_Store」而安装失败。CI 会挂载官方 DMG、校验签名/公证后用 `ditto` 把 `.app` 重打成 zip，经 SSH 上传到自有 ACS（`https://doc.rootfly.xyz/refill/<cask>/`），cask 指向该 zip——Homebrew 解 zip 走 ditto，全程不碰 `hdiutil`。
 
 > 重打包型需要 CI 能 SSH 到 ACS：私钥存放在仓库 Secret `ACS_SSH_KEY`（**不入库**），公钥放在 ACS 的 `authorized_keys`。未配置该 Secret 的 fork 会自动跳过这两个 cask，不影响其余软件。ACS 上每个 cask 仅保留最近 2 个历史 zip 以便回滚。
