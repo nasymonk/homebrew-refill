@@ -11,7 +11,8 @@ UPDATE_API="https://center.qoder.sh/algo/api/update/darwin-arm64/stable/latest"
 
 # --- 1. 查询更新接口，取最新版本号 / arm64 zip 地址 / 官方 sha256 ---
 # 更新接口偶尔连接抖动（SSL_ERROR_SYSCALL），用较长重试间隔兜底；
-# 失败时本小时跳过，下一小时调度自动重试，不影响其它 cask（工作流已 continue-on-error）。
+# 失败则本次跳过，由下一次调度重试；该 cask 会在 Job summary 中标为 FAIL 并使 job 变红，
+# 不再静默（见 scripts/run-bump.sh），也不影响其它 cask。
 api_json=$(curl -fsSL --retry 3 --retry-delay 15 --retry-all-errors --max-time 30 "$UPDATE_API?version=0.0.0")
 
 new_ver=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["name"])' <<<"$api_json")

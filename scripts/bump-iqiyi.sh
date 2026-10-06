@@ -8,8 +8,13 @@
 #  2) macOS 26/27 上 Homebrew 暂存只读 DMG 时会因清理 .DS_Store 报
 #     “Read-only file system”而安装失败，故与豆包一样：挂载取出 .app 后重打成 zip
 #     （Homebrew 解 zip 走 ditto，不碰 hdiutil），托管到自有 ACS。
+#  3) 厂商对同一个 DMG 做地域分发：2026-10-06 实测美国 GitHub runner 取到 50MB 的
+#     17.8.0，而中国大陆侧同一 URL 是 73.7MB 的 17.9.0。runner 站在国外，直接取包
+#     会让"权威版本"取决于边缘，既可能漏升级，也可能把国内拿不到的构建重打包发给
+#     国内用户。因此页面与 DMG 一律经 ACS（国内）下载后传回本机处理。
 #
-# 运行在 macOS（GitHub Actions macos runner 每小时，或本机手动）。
+# 运行在 macOS（GitHub Actions macos runner，或本机手动）。schedule 实测每天只跑 4~6 次
+# （GitHub 对 macOS runner 的定时触发会延后），并非注释里写的每小时。
 # 用法: scripts/bump-iqiyi.sh [Casks/iqiyi.rb]
 # 环境变量: ACS_HOST（默认 acs）、ACS_DIR（默认 /srv/refill/iqiyi）、KEEP（默认 2）、
 #           NO_COMMIT=1（CI 统一提交时必传）
@@ -53,23 +58,48 @@ cleanup() {
 }
 trap cleanup EXIT
 
+# 经 ACS（中国大陆）取回上游文件，使版本判定与国内用户看到的构建一致。
+# 远端只接受严格匹配官方形态的 URL，避免把来路不明的字符串拼进远端 shell。
+fetch_via_acs() {
+  local url="$1" dst="$2" remote
+  remote="/tmp/refill-iqiyi.$$.part"
+  ssh "$ACS_HOST" "curl -fsSL --retry 3 --max-time 900 -o '$remote' '$url'"
+  scp -q "$ACS_HOST:$remote" "$dst" || { ssh "$ACS_HOST" "rm -f '$remote'"; return 1; }
+  ssh "$ACS_HOST" "rm -f '$remote'"
+}
+
 # --- 1. 解析 DMG 地址（页面结构变化时回退到固定地址） ---
-html=$(curl -fsSL --retry 3 "$PAGE" || true)
+html=""
+if fetch_via_acs "$PAGE" "$tmp/page.html"; then
+  html=$(cat "$tmp/page.html")
+else
+  echo "::warning::经 ACS 取下载页失败，回退到固定 DMG 地址" >&2
+fi
 dmg_url=$(grep -oE 'https://static-d\.iqiyi\.com/ext/common/iQIYIMedia_[0-9]+\.dmg' <<<"$html" | head -1 || true)
 [ -n "$dmg_url" ] || dmg_url="$FALLBACK_DMG"
+if ! [[ "$dmg_url" =~ ^https://static-d\.iqiyi\.com/ext/common/iQIYIMedia_[0-9]+\.dmg$ ]]; then
+  echo "DMG 地址不符合官方形态，拒绝交给远端 shell: $dmg_url" >&2
+  exit 1
+fi
 
 cur=$(grep -m1 'version "' "$CASK" | sed -E 's/.*version "([^"]+)".*/\1/')
 
 # --- 2. 下载并挂载，读权威版本 ---
-curl -fSL --retry 3 --max-time 600 -o "$tmp/app.dmg" "$dmg_url"
+fetch_via_acs "$dmg_url" "$tmp/app.dmg"
 mount_dmg "$tmp/app.dmg"
 app_path=$(find "$mnt" -maxdepth 1 -name '*.app' | head -1)
 new_ver=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app_path/Contents/Info.plist")
 [ -n "$new_ver" ] || { echo "无法从 App Bundle 读取版本" >&2; exit 1; }
 
 ver_key() { awk -F. '{printf "%05d%05d%05d%05d", $1,$2,$3,$4}' <<<"$1"; }
-if [ "$(ver_key "$new_ver")" -le "$(ver_key "$cur")" ]; then
+if [ "$(ver_key "$new_ver")" -eq "$(ver_key "$cur")" ]; then
   echo "already up-to-date (cask=$cur, dmg=$new_ver)"; exit 0
+fi
+if [ "$(ver_key "$new_ver")" -lt "$(ver_key "$cur")" ]; then
+  # 不做降级；但这是异常信号（厂商覆写了更旧的构建，或取包视角不一致），必须报出来
+  echo "::warning::国内 DMG 版本 $new_ver 低于 cask 钉住的 $cur，已跳过（不降级）" >&2
+  echo "upstream older than cask (cask=$cur, dmg=$new_ver)"
+  exit 0
 fi
 echo "new version: $cur -> $new_ver"
 
