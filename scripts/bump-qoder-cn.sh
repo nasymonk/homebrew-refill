@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # Bump the qoder-cn cask (Qoder CN 全新形态, 0.1.x 版本线) via latest-mac.yml。
 # 注意：该 cask 与旧 "Qoder CN IDE"(1.2x) 是不同产品。
+# 取 static.qoder.com.cn（发布源，其 yml 自指向本域名），不用 oss-cn-beijing 镜像桶。
 set -euo pipefail
 
 CASK="${1:-Casks/qoder-cn.rb}"
-YML_URL="https://qoder-app.oss-cn-beijing.aliyuncs.com/qoder-app/releases/latest-mac.yml"
+YML_URL="https://static.qoder.com.cn/qoder-app/releases/latest-mac.yml"
 
 # --- 1. 获取 latest-mac.yml ---
 yml=$(curl -fsSL --retry 3 --retry-delay 10 --max-time 30 "$YML_URL")
@@ -27,7 +28,7 @@ fi
 # --- 3. 解析 arm64 zip 与推导 intel zip ---
 arm_url=$(grep -oE 'https://[^ ]+Qoder-CN-mac-arm64\.zip' <<<"$yml" | head -1 || true)
 if [ -z "$arm_url" ]; then
-  arm_url="https://qoder-app.oss-cn-beijing.aliyuncs.com/qoder-app/releases/${new_ver}/Qoder-CN-mac-arm64.zip"
+  arm_url="https://static.qoder.com.cn/qoder-app/releases/${new_ver}/Qoder-CN-mac-arm64.zip"
 fi
 
 intel_url="${arm_url/Qoder-CN-mac-arm64.zip/Qoder-CN-mac-x64.zip}"

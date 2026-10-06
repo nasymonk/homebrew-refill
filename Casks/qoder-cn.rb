@@ -3,15 +3,17 @@ cask "qoder-cn" do
 
   # Qoder CN 全新形态（与 "Qoder CN IDE" 1.2x 线是不同产品）。
   # 版本/sha256 由 scripts/bump-qoder-cn.sh 改写。
+  # static.qoder.com.cn 为发布源（其 latest-mac.yml 自指向本域名），
+  # qoder-app.oss-cn-beijing 仅为镜像桶，故不作下载与 livecheck 依据。
   on_arm do
     sha256 "8301bf47bb213158f118ca6bbe07aa2e9ff8a2ce8ea74437adaaf07e94507537"
 
-    url "https://qoder-app.oss-cn-beijing.aliyuncs.com/qoder-app/releases/#{version}/Qoder-CN-mac-arm64.zip"
+    url "https://static.qoder.com.cn/qoder-app/releases/#{version}/Qoder-CN-mac-arm64.zip"
   end
   on_intel do
     sha256 "1272500b8904547d9f23c834fac301d38d993075f31b14f7beab8af13ad86515"
 
-    url "https://qoder-app.oss-cn-beijing.aliyuncs.com/qoder-app/releases/#{version}/Qoder-CN-mac-x64.zip"
+    url "https://static.qoder.com.cn/qoder-app/releases/#{version}/Qoder-CN-mac-x64.zip"
   end
 
   name "Qoder CN"
@@ -19,7 +21,7 @@ cask "qoder-cn" do
   homepage "https://qoder.com.cn/"
 
   livecheck do
-    url "https://qoder-app.oss-cn-beijing.aliyuncs.com/qoder-app/releases/latest-mac.yml"
+    url "https://static.qoder.com.cn/qoder-app/releases/latest-mac.yml"
     strategy :yaml do |yaml|
       yaml["version"]
     end
@@ -27,7 +29,8 @@ cask "qoder-cn" do
 
   # 内置自更新
   auto_updates true
-  depends_on :macos
+  # 安装包 Info.plist 声明 LSMinimumSystemVersion 为 Monterey，故显式写下限（brew audit 要求）
+  depends_on macos: :monterey
 
   app "Qoder CN.app"
 
