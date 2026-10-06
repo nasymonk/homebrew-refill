@@ -40,37 +40,32 @@ jobs:
           ssh acs-host 'echo "ACS SSH 连通: $(hostname)"'
 
       # 各 cask 独立 bump，单个失败（上游页面变化、网络封锁等）不阻塞其余。
-      # 重打包型（iqiyi）用 NO_COMMIT=1，交给末尾统一步骤提交。
+      # run-bump.sh 自身恒返回 0 以保持隔离，同时把每个 cask 的结论记入汇总表，
+      # 由末尾 finish-bump.sh 让失败可见（job 变红），不再静默跳过。
+      # 重打包型（iqiyi）用 NO_COMMIT=1，交给统一步骤提交。
       - name: Bump iqiyi
         env:
           NO_COMMIT: "1"
           ACS_DIR: /srv/refill/iqiyi
-        run: bash scripts/bump-iqiyi.sh Casks/iqiyi.rb
-        continue-on-error: true
+        run: bash scripts/run-bump.sh iqiyi bash scripts/bump-iqiyi.sh Casks/iqiyi.rb
 
       - name: Bump qoder
-        run: bash scripts/bump-qoder.sh Casks/qoder.rb
-        continue-on-error: true
+        run: bash scripts/run-bump.sh qoder bash scripts/bump-qoder.sh Casks/qoder.rb
 
       - name: Bump qoder-cn
-        run: bash scripts/bump-qoder-cn.sh Casks/qoder-cn.rb
-        continue-on-error: true
+        run: bash scripts/run-bump.sh qoder-cn bash scripts/bump-qoder-cn.sh Casks/qoder-cn.rb
 
       - name: Bump qoder-ide
-        run: bash scripts/bump-qoder-ide.sh Casks/qoder-ide.rb
-        continue-on-error: true
+        run: bash scripts/run-bump.sh qoder-ide bash scripts/bump-qoder-ide.sh Casks/qoder-ide.rb
 
       - name: Bump workbuddy
-        run: bash scripts/bump-workbuddy.sh Casks/workbuddy.rb
-        continue-on-error: true
+        run: bash scripts/run-bump.sh workbuddy bash scripts/bump-workbuddy.sh Casks/workbuddy.rb
 
       - name: Bump buhocleaner
-        run: bash scripts/bump-buhocleaner.sh Casks/buhocleaner.rb
-        continue-on-error: true
+        run: bash scripts/run-bump.sh buhocleaner bash scripts/bump-buhocleaner.sh Casks/buhocleaner.rb
 
       - name: Bump deepseek-harness
-        run: bash scripts/bump-deepseek-harness.sh Casks/deepseek-harness.rb
-        continue-on-error: true
+        run: bash scripts/run-bump.sh deepseek-harness bash scripts/bump-deepseek-harness.sh Casks/deepseek-harness.rb
 
       - name: Commit & push if changed
         run: |
@@ -82,3 +77,7 @@ jobs:
           else
             echo "no changes to commit"
           fi
+
+      # 放在提交之后：即使某个 cask 检测失败，其余已升级的 cask 也已正常发布。
+      - name: Finish (summary + fail if any cask broke)
+        run: bash scripts/finish-bump.sh
