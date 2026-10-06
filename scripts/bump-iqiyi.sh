@@ -6,7 +6,7 @@
 #     页面“最新版本”文案也会滞后；因此以挂载 DMG 后 App Bundle 的
 #     CFBundleShortVersionString 为权威版本（不信任页面文案）。
 #  2) macOS 26/27 上 Homebrew 暂存只读 DMG 时会因清理 .DS_Store 报
-#     “Read-only file system”而安装失败，故与豆包一样：挂载取出 .app 后重打成 zip
+#     “Read-only file system”而安装失败，故挂载取出 .app 后重打成 zip
 #     （Homebrew 解 zip 走 ditto，不碰 hdiutil），托管到自有 ACS。
 #  3) 厂商对同一个 DMG 做地域分发：2026-10-06 实测美国 GitHub runner 取到 50MB 的
 #     17.8.0，而中国大陆侧同一 URL 是 73.7MB 的 17.9.0。runner 站在国外，直接取包

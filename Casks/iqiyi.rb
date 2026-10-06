@@ -4,7 +4,7 @@ cask "iqiyi" do
 
   # 官方是“固定 URL 原地覆写”的 DMG（iQIYIMedia_271.dmg，271 为品牌谐音），且 macOS 26/27 上
   # Homebrew 暂存只读 DMG 会因清理 .DS_Store 报 Read-only file system 而装不上。故由
-  # scripts/bump-iqiyi.sh 挂载官方 DMG、取 .app 重打成 zip 托管到 ACS（CI macOS runner 每小时巡检）。
+  # scripts/bump-iqiyi.sh 挂载官方 DMG、取 .app 重打成 zip 托管到 ACS（CI macOS runner 定时巡检）。
   url "https://doc.rootfly.xyz/refill/iqiyi/iQIYI_#{version}.zip"
   name "爱奇艺"
   name "iQIYI"
@@ -12,7 +12,9 @@ cask "iqiyi" do
   homepage "https://app.iqiyi.com/mac/player/index.html"
 
   # 下载页静态文案可能滞后于“固定 URL 原地覆写”的 DMG（曾出现页面标 17.8.0、DMG 实为 17.8.5）；
-  # 权威版本以 scripts/bump-iqiyi.sh 挂载 DMG 读到的 CFBundleShortVersionString 为准（CI 每小时巡检）。
+  # 权威版本以 scripts/bump-iqiyi.sh 挂载 DMG 读到的 CFBundleShortVersionString 为准（CI 定时巡检）。
+  # 该固定 URL 还按地域分发不同构建（实测国内 73.7MB/17.9.0，美国边缘 50MB/17.8.0），
+  # 故取包一律经国内 ACS，与国内用户看到的一致。
   # 正则锚定 macOS 区块，避免误匹配页面上 Windows/手机等无关版本号（旧正则曾误报 92.8）。
   livecheck do
     url "https://app.iqiyi.com/mac/player/index.html"
