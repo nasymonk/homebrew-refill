@@ -82,6 +82,37 @@ brew uninstall --cask --zap <软件名>
 
 *清单持续扩充中，若你常用的 Mac 软件在官方源找不到，欢迎提交申请。*
 
+> App Store 专属软件不做成 Cask，单独登记在下一节。
+
+---
+
+## App Store 专属软件（非 Cask）
+
+以下软件**只通过 Mac App Store 分发**：官方没有 DMG/ZIP 直链，Cask 必需的 `url` 无处可指，
+MAS 包又带 DRM，不能像 `iqiyi` 那样由 CI 取包重打镜像。
+
+唯一通路是 `mas`，但它在 Homebrew 7 下也走不通：cask 的安装步骤会被关进沙箱
+（HOME 替换为临时目录、禁读真实 home、默认断网、切断 XPC 与 LaunchServices），
+实测 `mas list` / `mas get` 在沙箱内永久挂起，`/usr/bin/open` 报
+`Code=-10810 Couldn't communicate with a helper application`，而 `HOMEBREW_NO_SANDBOX_CASK` 已被废弃。
+因此这类软件只登记、不提供 Cask，装请用自己的终端跑 `mas`：
+
+```bash
+brew install mas          # 首次，装 App Store 命令行工具
+mas get <App Store ID>    # 下载并装到 /Applications（幂等，已装仅提示 Already got）
+```
+
+| 软件 | 说明 | 当前版本 | App Store ID | 安装命令 | 官方主页 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **AndroMeld** | 在 Mac 上使用 Android App、传文件、接电话、同步剪贴板（bundle ID `com.catchingnow.andfiles`，需 macOS 15+） | 1.10.1 | `6762439757` | `mas get 6762439757` | [AndroMeld 官网](https://andromeld.catchingnow.com/zh-Hans/) |
+
+核对最新版本（无需登录）：
+
+```bash
+curl -fsSL 'https://itunes.apple.com/lookup?id=6762439757&country=cn' \
+  | python3 -c 'import json,sys; print(json.load(sys.stdin)["results"][0]["version"])'
+```
+
 ---
 
 ## 更新机制
@@ -101,7 +132,7 @@ brew uninstall --cask --zap <软件名>
 
 欢迎推荐你常用的 Mac 软件，或直接提交 Pull Request 参与维护。
 
-- **申请收录** — 若遇到官方源未收录的正规软件，欢迎 [提交软件收录请求 ›](https://github.com/nasymonk/homebrew-refill/issues/new?template=software_request.yml)
+- **申请收录** — 若遇到官方源未收录的正规软件，欢迎 [提交软件收录请求 ›](https://github.com/nasymonk/homebrew-refill/issues/new?template=software_request.yml)；仅上架 Mac App Store、无官方直链的软件无法做成 Cask（原因见「App Store 专属软件」一节），会登记进该清单
 - **提交贡献** —
   1. 在 `Casks/<软件名>.rb` 添加标准 Cask 定义；
   2. 在 `scripts/bump-<软件名>.sh` 编写上游检测脚本并注册进 `.github/workflows/autobump.yml`（用 `bash scripts/run-bump.sh <软件名> bash scripts/bump-<软件名>.sh Casks/<软件名>.rb` 调用，以保留巡检汇总），由 CI 的 macOS runner 定时巡检；若官方是在新版 macOS 上无法直接安装的 DMG，参考 `scripts/bump-iqiyi.sh`：经国内 ACS 取 DMG → 挂载 → `ditto` 重打成 zip → 经 SSH 上传到 ACS 镜像（SSH 私钥存于仓库 Secret `ACS_SSH_KEY`，不入库），cask 指向镜像 zip；
