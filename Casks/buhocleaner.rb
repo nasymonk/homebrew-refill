@@ -8,7 +8,7 @@ cask "buhocleaner" do
 
   # appcast 的 enclosure 是不带版本号的固定地址 (buhocleaner.dmg)，厂商原地覆写。
   # 版本/链接/sha 由 scripts/bump-buhocleaner.sh 解析 Sparkle appcast 改写。
-  url "https://pub-assets1.drbuho.com/buhocleaner/releases/buhocleaner.dmg"
+  url "https://pub-assets1.drbuho.com/buhocleaner/releases/v1.17.0(268)/buhocleaner.dmg"
   name "BuhoCleaner"
   desc "Mac cleaner and optimizer"
   homepage "https://www.drbuho.com/buhocleaner"
