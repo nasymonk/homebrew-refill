@@ -1,6 +1,6 @@
 cask "deepseek-harness" do
-  version "0.2.1-rc.1"
-  sha256 "564f6052649bf19b4cd8d20572928a516eb053ee79ecc61e928e8515a44ff32e"
+  version "0.2.1-rc.2"
+  sha256 "1131da00d7474b5373f3ffc580686b4b009464b68bd35d761c4352824f964604"
 
   url "https://download.deepseek.com/dsh-desk/bin/mac-arm64/deepseek-harness-#{version}-mac-arm64.zip"
   name "DeepSeek Harness"
