@@ -22,9 +22,18 @@ cask "arczip" do
 
   app "ArcZip.app"
 
+  # 实测(2026-10-21,1.1.2/232):App 带 ArcZipFinderSync / ArcZipQuickLook 两个 .appex,
+  # 各自生成独立 Container 与 Application Scripts;主 App 另有带 team-id 前缀的
+  # Application Scripts 与 Group Containers(J5W6R92F8U 为开发者团队 ID)。
   zap trash: [
+    "~/Library/Application Scripts/com.maczhang.ArcZip.FinderSync",
+    "~/Library/Application Scripts/com.maczhang.ArcZip.QuickLook",
+    "~/Library/Application Scripts/J5W6R92F8U.com.maczhang.ArcZip",
     "~/Library/Application Support/com.maczhang.ArcZip",
     "~/Library/Caches/com.maczhang.ArcZip",
+    "~/Library/Containers/com.maczhang.ArcZip.FinderSync",
+    "~/Library/Containers/com.maczhang.ArcZip.QuickLook",
+    "~/Library/Group Containers/J5W6R92F8U.com.maczhang.ArcZip",
     "~/Library/HTTPStorages/com.maczhang.ArcZip",
     "~/Library/Preferences/com.maczhang.ArcZip.plist",
     "~/Library/Saved Application State/com.maczhang.ArcZip.savedState",
