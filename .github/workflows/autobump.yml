@@ -64,6 +64,9 @@ jobs:
       - name: Bump buhocleaner
         run: bash scripts/run-bump.sh buhocleaner bash scripts/bump-buhocleaner.sh Casks/buhocleaner.rb
 
+      - name: Bump arczip
+        run: bash scripts/run-bump.sh arczip bash scripts/bump-arczip.sh Casks/arczip.rb
+
       - name: Bump deepseek-harness
         run: bash scripts/run-bump.sh deepseek-harness bash scripts/bump-deepseek-harness.sh Casks/deepseek-harness.rb
 

@@ -79,6 +79,7 @@ brew uninstall --cask --zap <软件名>
 | **`workbuddy`** | WorkBuddy 腾讯 AI 办公助手 | M系列 / Intel | CodeBuddy 更新接口（CI 定时巡检） | [WorkBuddy 官网](https://www.workbuddy.cn/) | `brew install --cask workbuddy` |
 | **`buhocleaner`** | BuhoCleaner 专业 Mac 清理优化工具 | 通用 (Universal) | Sparkle Appcast (XML Feed)（CI 定时巡检） | [Dr.Buho 官网](https://www.drbuho.com/buhocleaner) | `brew install --cask buhocleaner` |
 | **`deepseek-harness`** | DeepSeek Harness 官方 AI 智能体桌面端 | 仅 Apple 芯片 (M系列) | 官方 electron-builder YAML 巡检（CI 定时巡检） | [DeepSeek Harness 官网](https://www.deepseek.com/harness/) | `brew install --cask deepseek-harness` |
+| **`arczip`** | ArcZip macOS 解压缩工具 | 通用 (Universal) | Sparkle Appcast (XML Feed)（CI 定时巡检） | [ArcZip 官网](https://arczip.app/) | `brew install --cask arczip` |
 
 *清单持续扩充中，若你常用的 Mac 软件在官方源找不到，欢迎提交申请。*
 
@@ -119,7 +120,7 @@ curl -fsSL 'https://itunes.apple.com/lookup?id=6762439757&country=cn' \
 
 所有 cask 由 GitHub Actions 的 **macOS runner 定时巡检**（cron 请求每小时一次，实测每天约 4~6 次），分两类：
 
-- **直链型**（`deepseek-harness`、`qoder`、`qoder-cn`、`qoder-ide`、`workbuddy`、`buhocleaner`）：上游本就是 zip 或可正常挂载的 DMG，CI 只比对版本、改写 `version/sha256` 后提交，安装时直接从官方地址下载。
+- **直链型**（`arczip`、`buhocleaner`、`deepseek-harness`、`qoder`、`qoder-cn`、`qoder-ide`、`workbuddy`）：上游本就是 zip 或可正常挂载的 DMG，CI 只比对版本、改写 `version/sha256` 后提交，安装时直接从官方地址下载。
 - **重打包镜像型**（`iqiyi`）：官方安装包是 DMG，在 macOS 26/27 上 Homebrew 会因「未签名镜像」或「只读卷清理 .DS_Store」而安装失败；爱奇艺还对同一个固定 URL 做**地域分发**（国内外边缘给出不同构建）。因此页面与 DMG 都先经国内 ACS 下载再传回 runner，保证判定的是国内用户实际能拿到的构建；随后挂载取 App Bundle 里的版本号、校验签名/公证后用 `ditto` 把 `.app` 重打成 zip，经 SSH 上传到自有 ACS（`https://doc.rootfly.xyz/refill/<cask>/`），cask 指向该 zip——Homebrew 解 zip 走 ditto，全程不碰 `hdiutil`。
 
 巡检结果一律可见：每个 cask 由 `scripts/run-bump.sh` 包装执行，单个失败不阻塞其余，但会记入 Job summary 的「cask / 结果 / 详情」表；只要有 cask 检测失败，本次 autobump 即显示为红（`scripts/finish-bump.sh`），不会再出现「全绿但其实某个软件早已停止跟踪上游」。
