@@ -69,7 +69,8 @@ if [ -z "$app_name" ]; then
   exit 1
 fi
 unzip -o -q "$tmp/arm.zip" "$app_name/Contents/Info.plist" -d "$tmp"
-bundle_ver=$(plutil -p "$tmp/$app_name/Contents/Info.plist" 2>/dev/null | grep CFBundleShortVersionString | sed -E 's/.*"([^"]+)".*/\1/' || true)
+# 用 python plistlib 读 Info.plist，macOS / Linux runner 通用（plutil 仅 macOS）。
+bundle_ver=$(python3 -c 'import plistlib,sys; print(plistlib.load(open(sys.argv[1],"rb")).get("CFBundleShortVersionString",""))' "$tmp/$app_name/Contents/Info.plist" 2>/dev/null || true)
 if [ -n "$bundle_ver" ] && [ "$bundle_ver" != "$new_ver" ]; then
   echo "::warning::bundle version ($bundle_ver) differs from API version ($new_ver), using bundle version"
   new_ver="$bundle_ver"

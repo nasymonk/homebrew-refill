@@ -1,0 +1,72 @@
+name: autobump-iqiyi
+
+on:
+  schedule:
+    - cron: "17 * * * *"   # 每小时 :17 (UTC)；macOS runner 排队较久，实际每天约 4~6 次
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# 与 autobump 共用同一 concurrency group，避免两个 workflow 同时 push 冲突。
+concurrency:
+  group: refill-autobump
+  cancel-in-progress: false
+
+jobs:
+  bump:
+    # iqiyi 重打包依赖 hdiutil / ditto / codesign，必须用 macOS runner。
+    runs-on: macos-latest
+    env:
+      # bump-iqiyi.sh 通过该 SSH 别名把重打的 zip 上传到 ACS
+      ACS_HOST: acs-host
+    steps:
+      - uses: actions/checkout@v4
+
+      # 配置到 ACS 的免密 SSH（仅重打包型 cask 需要）。
+      # 私钥放在仓库 Secret ACS_SSH_KEY，绝不入库；公钥需提前加入 ACS 的 authorized_keys。
+      - name: Configure SSH to ACS
+        env:
+          ACS_SSH_KEY: ${{ secrets.ACS_SSH_KEY }}
+        run: |
+          if [ -z "$ACS_SSH_KEY" ]; then echo "ACS_SSH_KEY 未配置，重打包型 cask 将跳过"; exit 0; fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$ACS_SSH_KEY" > ~/.ssh/id_ed25519_ci
+          chmod 600 ~/.ssh/id_ed25519_ci
+          ssh-keyscan -H -t ed25519,rsa 8.130.151.172 >> ~/.ssh/known_hosts 2>/dev/null
+          cat > ~/.ssh/config <<'EOF'
+          Host acs-host
+            HostName 8.130.151.172
+            User root
+            IdentityFile ~/.ssh/id_ed25519_ci
+            IdentitiesOnly yes
+          EOF
+          chmod 600 ~/.ssh/config
+          ssh acs-host 'echo "ACS SSH 连通: $(hostname)"'
+
+      # NO_COMMIT=1：重打包型由下方统一步骤提交。
+      - name: Bump iqiyi
+        timeout-minutes: 25
+        env:
+          NO_COMMIT: "1"
+          ACS_DIR: /srv/refill/iqiyi
+        run: bash scripts/run-bump.sh iqiyi bash scripts/bump-iqiyi.sh Casks/iqiyi.rb
+
+      - name: Commit & push if changed
+        if: always()
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git commit -am "autobump iqiyi to latest"
+            git pull --rebase || true
+            git push
+          else
+            echo "no changes to commit"
+          fi
+
+      - name: Finish (summary + fail if any cask broke)
+        if: always()
+        env:
+          EXPECTED_CASKS: "iqiyi"
+        run: bash scripts/finish-bump.sh

@@ -2,57 +2,32 @@ name: autobump
 
 on:
   schedule:
-    - cron: "17 * * * *"   # 请求每小时 :17 (UTC)；macOS runner 实测每天只触发 4~6 次，会延后
-  workflow_dispatch:       # manual trigger from the Actions tab
+    - cron: "*/15 * * * *"   # 每 15 分钟；Linux runner 排队短，实际接近准点
+  workflow_dispatch:         # manual trigger from the Actions tab
 
 permissions:
   contents: write
 
+# 与 autobump-iqiyi 共用同一 concurrency group，避免两个 workflow 同时 push 冲突。
+concurrency:
+  group: refill-autobump
+  cancel-in-progress: false
+
 jobs:
   bump:
-    runs-on: macos-latest   # 重打包依赖 hdiutil/ditto/codesign，必须用 macOS runner
-    env:
-      # bump-*.sh 通过该 SSH 别名把重打的 zip 上传到 ACS（别名在下方 SSH 配置步骤写入 ~/.ssh/config）
-      ACS_HOST: acs-host
+    # 轻量直链型 cask 只需要 curl / python3 / unzip / shasum，Linux runner 即可，
+    # 且排队远短于 macOS。iqiyi 依赖 hdiutil/ditto/codesign，单独在
+    # autobump-iqiyi.yml 的 macOS runner 上跑。
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # 配置到 ACS 的免密 SSH（仅重打包型 cask 需要：iqiyi）。
-      # 私钥放在仓库 Secret ACS_SSH_KEY，绝不入库；公钥需提前加入 ACS 的 authorized_keys。
-      # 未配置该 Secret 的 fork 上会安全跳过，不影响其余直链 cask。
-      - name: Configure SSH to ACS
-        env:
-          ACS_SSH_KEY: ${{ secrets.ACS_SSH_KEY }}
-        run: |
-          if [ -z "$ACS_SSH_KEY" ]; then echo "ACS_SSH_KEY 未配置，重打包型 cask 将跳过"; exit 0; fi
-          mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          printf '%s\n' "$ACS_SSH_KEY" > ~/.ssh/id_ed25519_ci
-          chmod 600 ~/.ssh/id_ed25519_ci
-          ssh-keyscan -H -t ed25519,rsa 8.130.151.172 >> ~/.ssh/known_hosts 2>/dev/null
-          cat > ~/.ssh/config <<'EOF'
-          Host acs-host
-            HostName 8.130.151.172
-            User root
-            IdentityFile ~/.ssh/id_ed25519_ci
-            IdentitiesOnly yes
-          EOF
-          chmod 600 ~/.ssh/config
-          ssh acs-host 'echo "ACS SSH 连通: $(hostname)"'
+      # shasum 由 perl 提供；ubuntu-latest 通常自带，缺失时补装。
+      - name: Ensure shasum
+        run: command -v shasum >/dev/null 2>&1 || { sudo apt-get update && sudo apt-get install -y libdigest-sha-perl; }
 
-      # 各 cask 独立 bump，单个失败（上游页面变化、网络封锁等）不阻塞其余。
-      # run-bump.sh 自身恒返回 0 以保持隔离，同时把每个 cask 的结论记入汇总表。
-      # 每个步骤另设 timeout-minutes：防止某个 cask 卡死拖住整个 job；
-      # 超时的 step 会被标红并跳过后续，因此 Commit/Finish 都包了 if: always()，
-      # 保证已完成的 cask 仍会提交、汇总。finish-bump.sh 会把「无结果」的 cask
-      # 补记为 FAIL，避免超时被静默吞掉。
-      # 重打包型（iqiyi）用 NO_COMMIT=1，交给统一步骤提交。
-      - name: Bump iqiyi
-        timeout-minutes: 25
-        env:
-          NO_COMMIT: "1"
-          ACS_DIR: /srv/refill/iqiyi
-        run: bash scripts/run-bump.sh iqiyi bash scripts/bump-iqiyi.sh Casks/iqiyi.rb
-
+      # 各 cask 独立 bump，单个失败不阻塞其余（run-bump.sh 恒返回 0）。
+      # 每个 step 设 timeout-minutes 防卡死；Commit/Finish 用 if: always() 兜底。
       - name: Bump qoder
         timeout-minutes: 25
         run: bash scripts/run-bump.sh qoder bash scripts/bump-qoder.sh Casks/qoder.rb
@@ -89,12 +64,14 @@ jobs:
             git config user.name  "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git commit -am "autobump casks to latest"
+            git pull --rebase || true
             git push
           else
             echo "no changes to commit"
           fi
 
-      # 放在提交之后：即使某个 cask 检测失败，其余已升级的 cask 也已正常发布。
       - name: Finish (summary + fail if any cask broke)
         if: always()
+        env:
+          EXPECTED_CASKS: "qoder qoder-cn qoder-ide workbuddy buhocleaner arczip deepseek-harness"
         run: bash scripts/finish-bump.sh

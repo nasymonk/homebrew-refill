@@ -2,7 +2,7 @@
 
 个人 Homebrew tap。收录官方 `homebrew-cask` 未收录、落后于上游或无法直接安装的 macOS 软件。
 
-全部 cask 由 GitHub Actions 的 macOS runner 定时巡检上游并自动 bump(cron 每小时触发,macOS runner 实测每天约 4~6 次)。
+全部 cask 由 GitHub Actions 定时巡检上游并自动 bump。轻量直链型跑在 `ubuntu-latest`(每 15 分钟),重打包型 `iqiyi` 因依赖 macOS 工具单独跑在 `macos-latest`(每小时,排队后实测每天约 4~6 次)。
 
 ## 使用
 
@@ -35,10 +35,12 @@ brew uninstall --cask --zap <cask>  # 深度卸载,清除 Library 残留
 
 ## 更新机制
 
-- **直链型**(`arczip`、`buhocleaner`、`deepseek-harness`、`qoder`、`qoder-cn`、`qoder-ide`、`workbuddy`):上游本身就是 zip 或可正常挂载的 DMG。CI 比对版本后改写 `version` / `sha256`,安装时直接从官方地址下载。
-- **重打包镜像型**(`iqiyi`):官方 DMG 在 macOS 26/27 上无法被 Homebrew 直接安装(未签名镜像、只读卷清理 `.DS_Store`),且同一固定 URL 会按地域分发不同构建。因此 CI 先经国内 ACS 取回 DMG 再传回 runner,挂载读取 App Bundle 得到国内用户实际能拿到的版本,校验签名/公证后用 `ditto` 重打成 zip,SSH 上传到 ACS(`https://doc.rootfly.xyz/refill/<cask>/`),cask 指向该镜像——安装时 Homebrew 解 zip 走 `ditto`,不碰 `hdiutil`。
+- **直链型**(`arczip`、`buhocleaner`、`deepseek-harness`、`qoder`、`qoder-cn`、`qoder-ide`、`workbuddy`):上游本身就是 zip 或可正常挂载的 DMG。CI 比对版本后改写 `version` / `sha256`,安装时直接从官方地址下载。由 `.github/workflows/autobump.yml` 在 `ubuntu-latest` 上每 15 分钟巡检。
+- **重打包镜像型**(`iqiyi`):官方 DMG 在 macOS 26/27 上无法被 Homebrew 直接安装(未签名镜像、只读卷清理 `.DS_Store`),且同一固定 URL 会按地域分发不同构建。因此 CI 先经国内 ACS 取回 DMG 再传回 runner,挂载读取 App Bundle 得到国内用户实际能拿到的版本,校验签名/公证后用 `ditto` 重打成 zip,SSH 上传到 ACS(`https://doc.rootfly.xyz/refill/<cask>/`),cask 指向该镜像——安装时 Homebrew 解 zip 走 `ditto`,不碰 `hdiutil`。因依赖 `hdiutil`/`ditto`/`codesign`,由 `.github/workflows/autobump-iqiyi.yml` 在 `macos-latest` 上每小时巡检。
 
-巡检失败可见:每个 cask 由 `scripts/run-bump.sh` 包装执行,单个失败不阻塞其余,但会记入 Job summary 的「cask / 结果 / 详情」表;任一 cask 失败则本次 autobump 变红(`scripts/finish-bump.sh`)。
+两个 workflow 共用 `concurrency: refill-autobump`,不会同时 push。
+
+巡检失败可见:每个 cask 由 `scripts/run-bump.sh` 包装执行,单个失败不阻塞其余,但会记入 Job summary 的「cask / 结果 / 详情」表;任一 cask 失败则本次 autobump 变红(`scripts/finish-bump.sh`)。每个 bump step 有 25 分钟超时,超时的 cask 记为 `FAIL`,其余 cask 仍会由 `if: always()` 的步骤提交。
 
 重打包型需要 CI 能 SSH 到 ACS:私钥在仓库 Secret `ACS_SSH_KEY`(不入库),公钥在 ACS 的 `authorized_keys`。未配置该 Secret 的 fork 会跳过该 cask。ACS 上每个 cask 只保留最近 2 个历史 zip 以便回滚。
 
