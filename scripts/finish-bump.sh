@@ -3,8 +3,18 @@
 # 任一 cask 失败则以非零退出，让本次 autobump 显示为红。
 set -uo pipefail
 
+# 预期巡检的 cask 列表：某个 bump step 超时/被杀时 run-bump.sh 来不及写结果，
+# 这里把缺失项补记为 FAIL，避免「无结果 = 悄悄跳过」。
+EXPECTED="iqiyi qoder qoder-cn qoder-ide workbuddy buhocleaner arczip deepseek-harness"
+
 summary="${BUMP_SUMMARY:-${RUNNER_TEMP:-/tmp}/bump-summary.md}"
 out="${GITHUB_STEP_SUMMARY:-/dev/stdout}"
+
+touch "$summary"
+for name in $EXPECTED; do
+  grep -qE "^\| $name \|" "$summary" || \
+    printf '| %s | FAIL | 无结果(step 超时或被跳过) |\n' "$name" >> "$summary"
+done
 
 {
   echo "## autobump 结果"

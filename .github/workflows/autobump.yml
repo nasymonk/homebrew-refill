@@ -40,37 +40,50 @@ jobs:
           ssh acs-host 'echo "ACS SSH 连通: $(hostname)"'
 
       # 各 cask 独立 bump，单个失败（上游页面变化、网络封锁等）不阻塞其余。
-      # run-bump.sh 自身恒返回 0 以保持隔离，同时把每个 cask 的结论记入汇总表，
-      # 由末尾 finish-bump.sh 让失败可见（job 变红），不再静默跳过。
+      # run-bump.sh 自身恒返回 0 以保持隔离，同时把每个 cask 的结论记入汇总表。
+      # 每个步骤另设 timeout-minutes：防止某个 cask 卡死拖住整个 job；
+      # 超时的 step 会被标红并跳过后续，因此 Commit/Finish 都包了 if: always()，
+      # 保证已完成的 cask 仍会提交、汇总。finish-bump.sh 会把「无结果」的 cask
+      # 补记为 FAIL，避免超时被静默吞掉。
       # 重打包型（iqiyi）用 NO_COMMIT=1，交给统一步骤提交。
       - name: Bump iqiyi
+        timeout-minutes: 25
         env:
           NO_COMMIT: "1"
           ACS_DIR: /srv/refill/iqiyi
         run: bash scripts/run-bump.sh iqiyi bash scripts/bump-iqiyi.sh Casks/iqiyi.rb
 
       - name: Bump qoder
+        timeout-minutes: 25
         run: bash scripts/run-bump.sh qoder bash scripts/bump-qoder.sh Casks/qoder.rb
 
       - name: Bump qoder-cn
+        timeout-minutes: 25
         run: bash scripts/run-bump.sh qoder-cn bash scripts/bump-qoder-cn.sh Casks/qoder-cn.rb
 
       - name: Bump qoder-ide
+        timeout-minutes: 25
         run: bash scripts/run-bump.sh qoder-ide bash scripts/bump-qoder-ide.sh Casks/qoder-ide.rb
 
       - name: Bump workbuddy
+        timeout-minutes: 25
         run: bash scripts/run-bump.sh workbuddy bash scripts/bump-workbuddy.sh Casks/workbuddy.rb
 
       - name: Bump buhocleaner
+        timeout-minutes: 25
         run: bash scripts/run-bump.sh buhocleaner bash scripts/bump-buhocleaner.sh Casks/buhocleaner.rb
 
       - name: Bump arczip
+        timeout-minutes: 25
         run: bash scripts/run-bump.sh arczip bash scripts/bump-arczip.sh Casks/arczip.rb
 
       - name: Bump deepseek-harness
+        timeout-minutes: 25
         run: bash scripts/run-bump.sh deepseek-harness bash scripts/bump-deepseek-harness.sh Casks/deepseek-harness.rb
 
+      # if: always()：即使前面某个 bump step 超时/失败，也要提交已完成的升级。
       - name: Commit & push if changed
+        if: always()
         run: |
           if [ -n "$(git status --porcelain)" ]; then
             git config user.name  "github-actions[bot]"
@@ -83,4 +96,5 @@ jobs:
 
       # 放在提交之后：即使某个 cask 检测失败，其余已升级的 cask 也已正常发布。
       - name: Finish (summary + fail if any cask broke)
+        if: always()
         run: bash scripts/finish-bump.sh
