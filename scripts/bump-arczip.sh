@@ -16,14 +16,15 @@ import re, sys
 
 xml = sys.stdin.read()
 
-def find_field(item, name):
-    # ArcZip 的 appcast 把 sparkle:version / sparkle:shortVersionString 放成 <item> 的
-    # 子元素（<sparkle:version>232</sparkle:version>），而非常见的 enclosure 属性；
-    # 这里两种写法都兼容。
-    m = re.search(r"<" + name + r">([^<]+)</" + name + r">", item)
+def find_field(item, local):
+    # 字段可能是 <item> 的子元素（<ver>232</ver>），也可能是 enclosure 属性；
+    # 命名空间前缀由序列化器决定（sparkle: / ns0: / 无前缀，2026-10 上游由
+    # sparkle: 切成 ns0:），因此只按本地名匹配，前缀可选。
+    prefix = r"(?:\w+:)?"
+    m = re.search(r"<" + prefix + re.escape(local) + r">([^<]+)</" + prefix + re.escape(local) + r">", item)
     if m:
         return m.group(1).strip()
-    m = re.search(name + r"=\"([^\"]+)\"", item)
+    m = re.search(r"\s" + prefix + re.escape(local) + r"=\"([^\"]+)\"", item)
     return m.group(1) if m else None
 
 cands = []
@@ -32,8 +33,8 @@ for item in re.findall(r"<item>.*?</item>", xml, re.S):
     if not enc:
         continue
     url = re.search(r"url=\"([^\"]+)\"", enc.group(0))
-    ver = find_field(item, "sparkle:shortVersionString")
-    build = find_field(item, "sparkle:version")
+    ver = find_field(item, "shortVersionString")
+    build = find_field(item, "version")
     if not (url and ver):
         continue
     num = int(build) if build and build.isdigit() else -1
