@@ -1,6 +1,6 @@
 cask "iqiyi" do
-  version "17.10.0"
-  sha256 "7dadb0d139b160031593fe6f6af3d6db88311d121ae8d618d739748b7a29ae0b"
+  version "17.10.5"
+  sha256 "0fc7e1f12532547adf44f35aeee38a595cbbe3b74be4955da2f001941cba1a99"
 
   # 官方是“固定 URL 原地覆写”的 DMG（iQIYIMedia_271.dmg，271 为品牌谐音），且 macOS 26/27 上
   # Homebrew 暂存只读 DMG 会因清理 .DS_Store 报 Read-only file system 而装不上。故由
