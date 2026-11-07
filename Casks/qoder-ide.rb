@@ -1,16 +1,16 @@
 cask "qoder-ide" do
-  version "1.38.0"
+  version "1.39.1"
 
   # 旧 Qoder Desktop/IDE（1.2x 版本线，与全新 Qoder 0.1.x 是不同产品）；
   # 上游自 1.25.0 起改名 "Qoder IDE" 并更换发布通道：旧 latest dmg 直链已永久停更，
   # 新版本以带版本号 zip 发布于 qoder-ide OSS 桶；
   # 版本/sha256/app 名由 scripts/bump-qoder-ide.sh 依官方更新接口（center.qoder.sh）改写。
   on_arm do
-    sha256 "72ff19d82a67e528e38fdb028151acd4da72b4762188844e49908d448063834f"
+    sha256 "9b9f72cb5e8e8970d2874aeb4d794ee68906bc5df981da2c722842f8bf3e8902"
     url "https://qoder-ide.oss-accelerate.aliyuncs.com/release/#{version}/Qoder-darwin-arm64.zip"
   end
   on_intel do
-    sha256 "b11e21e3646bce452383c404f22a3b931cfd66feefe870d79d57e8595dd1e59b"
+    sha256 "a9fd02602cdfd2d081e6a98025310468ce8873a3eade225c0f24a581413b7825"
     url "https://qoder-ide.oss-accelerate.aliyuncs.com/release/#{version}/Qoder-darwin-x64.zip"
   end
 
