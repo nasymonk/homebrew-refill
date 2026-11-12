@@ -1,14 +1,14 @@
 cask "buhocleaner" do
-  version "1.17.0"
+  version "1.17.1"
   # 故意偏离 `brew audit` 的 "unversioned URL 应用 sha256 :no_check"：
   # 厂商原地覆写同一个 .dmg，no_check 等于放弃安装时的完整性校验。
   # 这里改为由 scripts/bump-buhocleaner.sh 每次发布重算并钉住 sha，
   # 代价是厂商覆写到我们 bump 之间存在窗口期，此时安装会校验失败而非装入未校验内容。
-  sha256 "81cff523a7606e5ed7b01c6ce84ac38cbb78a4bfd84e7e21006322839b582383"
+  sha256 "3d1739e7c35a0543f1153156d9dbd5e0052dd631fd00e0834dbeb40baa48078a"
 
   # appcast 的 enclosure 是不带版本号的固定地址 (buhocleaner.dmg)，厂商原地覆写。
   # 版本/链接/sha 由 scripts/bump-buhocleaner.sh 解析 Sparkle appcast 改写。
-  url "https://pub-assets1.drbuho.com/buhocleaner/releases/buhocleaner_b270.dmg"
+  url "https://pub-assets1.drbuho.com/buhocleaner/releases/buhocleaner_b272.dmg"
   name "BuhoCleaner"
   desc "Mac cleaner and optimizer"
   homepage "https://www.drbuho.com/buhocleaner"
