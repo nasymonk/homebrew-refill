@@ -1,15 +1,15 @@
 cask "qoder" do
-  version "0.5.7"
+  version "0.5.11"
 
   # 全新 Qoder（agentic platform，2026-08 发布，与 "Qoder IDE" 1.2x 线是不同产品）；
   # 桶内只有带版本号路径，版本来自官方更新接口（desktop 通道），
   # 版本/sha256/app 名由 scripts/bump-qoder.sh 改写。
   on_arm do
-    sha256 "e2025a1033901143a0fb6c54b93c7be67b1862082b92e9d37f067f639d999909"
+    sha256 "43fd1a64170c91d1ab27ef17781c1e8c1ea13172087ae79ac061802e0868e821"
     url "https://download.qoder.com.cn/qoder-app/releases/#{version}/Qoder-mac-arm64.zip"
   end
   on_intel do
-    sha256 "6aff75201ee961c2cfbc397b046af74f3bb323b14d8b42e9bf1d3c80342a5732"
+    sha256 "cffec448de9650a962cf942af7378bdc57b3852c1d451a090879d93c1d48b713"
     url "https://download.qoder.com.cn/qoder-app/releases/#{version}/Qoder-mac-x64.zip"
   end
 
