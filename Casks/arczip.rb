@@ -1,12 +1,12 @@
 cask "arczip" do
-  version "1.1.5"
-  sha256 "32c80f836add5e7c1ab165b9d9f118692b877196f4da7cb150a1d4eac0accc66"
+  version "1.2.5"
+  sha256 "e3f95029daf55d239da8d0cad2cc9bee1c1170c174cbe8410790660d30d283c5"
 
   # 官方 Sparkle appcast 的 enclosure 即此 zip（根级 ArcZip.app，ditto 友好），
   # 版本/链接/sha 由 scripts/bump-arczip.sh 解析 appcast 改写。
-  # appcast 同时给出 sparkle:shortVersionString 与 sparkle:version(构建号 232)，
+  # appcast 同时给出 sparkle:shortVersionString 与 sparkle:version(构建号)，
   # cask 只跟短版本号，构建号仅供 bump 脚本挑选 item。
-  url "https://download.arczip.app/releases/1.1.5/273/ArcZip-1.1.5-273.zip"
+  url "https://download.arczip.app/releases/1.2.5/384/ArcZip-1.2.5-384.zip"
   name "ArcZip"
   desc "Archive extraction tool supporting zip, rar, 7z and more"
   homepage "https://arczip.app/"

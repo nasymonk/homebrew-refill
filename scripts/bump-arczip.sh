@@ -2,12 +2,18 @@
 # Bump the arczip cask from its Sparkle appcast.
 # appcast 的 enclosure 即官方 zip（根级 ArcZip.app），cask url 直接指向它，
 # 无需像 iqiyi 那样重打镜像。逻辑与 bump-buhocleaner.sh 同源。
+#
+# 上游 appcast 与安装包经 scripts/upstream.sh 走 ACS 国内出口：GitHub Actions
+# 的境外 runner 直连 download.arczip.app 会被 Cloudflare 返回 403（2026-11 实测），
+# 曾导致该 cask 自 2026-10-25 起连续 20+ 次巡检失败。
 set -euo pipefail
+
+source "$(dirname "${BASH_SOURCE[0]}")/upstream.sh"
 
 CASK="${1:-Casks/arczip.rb}"
 FEED="https://download.arczip.app/appcast.xml"
 
-xml=$(curl -fsSL "$FEED")
+xml=$(upstream_cat "$FEED")
 
 # 以 item 为单位解析，保证版本号与 zip 地址取自同一条发布记录。
 # 多个 item 时按 Sparkle 语义取 sparkle:version(构建号)最大者，构建号相同或缺失时退回短版本号数值比较。
@@ -59,6 +65,12 @@ if [ -z "$new_ver" ] || [ -z "$new_url" ]; then
   exit 1
 fi
 
+# enclosure URL 来自上游 XML，写入 cask / 拼进远端 shell 前先钉死形态。
+if [[ ! "$new_url" =~ ^https://download\.arczip\.app/releases/[0-9.]+/[0-9]+/ArcZip-[0-9.]+-[0-9]+\.zip$ ]]; then
+  echo "appcast enclosure URL 形态异常，拒绝使用: $new_url" >&2
+  exit 1
+fi
+
 cur_ver=$(grep -m1 'version "' "$CASK" | sed -E 's/.*version "([^"]+)".*/\1/')
 cur_url=$(grep -m1 'url "' "$CASK" | sed -E 's/.*url "([^"]+)".*/\1/')
 
@@ -67,9 +79,8 @@ if [ "$cur_ver" = "$new_ver" ] && [ "$cur_url" = "$new_url" ]; then
   exit 0
 fi
 
-tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
-curl -fsSL -o "$tmp/app.zip" "$new_url"
-sha=$(shasum -a 256 "$tmp/app.zip" | cut -d' ' -f1)
+# 摘要由 ACS（或本机直连）下载官方 zip 后计算，大文件不回传 runner。
+sha=$(upstream_sha256 "$new_url")
 
 # 只改写顶层下载 stanza（两空格缩进 ^  url），livecheck 的 url 缩进更深不受影响。
 if [[ "$new_url" == *"|"* ]]; then

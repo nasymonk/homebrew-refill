@@ -36,13 +36,14 @@ brew uninstall --cask --zap <cask>  # 深度卸载,清除 Library 残留
 ## 更新机制
 
 - **直链型**(`arczip`、`buhocleaner`、`deepseek-harness`、`qoder`、`qoder-cn`、`qoder-ide`、`workbuddy`):上游本身就是 zip 或可正常挂载的 DMG。CI 比对版本后改写 `version` / `sha256`,安装时直接从官方地址下载。由 `.github/workflows/autobump.yml` 在 `ubuntu-latest` 上每 15 分钟巡检。
+- **上游取数通道**(`scripts/upstream.sh`,2026-11-15 引入):`arczip` 与 `workbuddy` 的上游数据统一经 ACS(中国大陆出口)获取。境外 GitHub runner 请求 `download.arczip.app/appcast.xml` 会被 Cloudflare 以 403 拒绝,且 `www.codebuddy.cn/v2/update` 对境外返回旧渠道版本(CI 曾持续读到 5.9.3 而国内已是 5.11.3),两者都会让 cask 静默停更。大文件(WorkBuddy 双架构各约 450MB)在 ACS 端下载并计算 `sha256` / 读取包内 `.app` 名,只回传一行文本,避免近 1GB 跨国传输拖垮巡检超时。ACS 不可用时自动退回 runner 直连(带浏览器 UA 与重试),未配置 Secret 的 fork 仍可运行,只是可能取不到国内视角的版本。
 - **重打包镜像型**(`iqiyi`):官方 DMG 在 macOS 26/27 上无法被 Homebrew 直接安装(未签名镜像、只读卷清理 `.DS_Store`),且同一固定 URL 会按地域分发不同构建。因此 CI 先经国内 ACS 取回 DMG 再传回 runner,挂载读取 App Bundle 得到国内用户实际能拿到的版本,校验签名/公证后用 `ditto` 重打成 zip,SSH 上传到 ACS(`https://doc.rootfly.xyz/refill/<cask>/`),cask 指向该镜像——安装时 Homebrew 解 zip 走 `ditto`,不碰 `hdiutil`。因依赖 `hdiutil`/`ditto`/`codesign`,由 `.github/workflows/autobump-iqiyi.yml` 在 `macos-latest` 上每小时巡检。
 
 两个 workflow 共用 `concurrency: refill-autobump`,不会同时 push。
 
 巡检失败可见:每个 cask 由 `scripts/run-bump.sh` 包装执行,单个失败不阻塞其余,但会记入 Job summary 的「cask / 结果 / 详情」表;任一 cask 失败则本次 autobump 变红(`scripts/finish-bump.sh`)。每个 bump step 有 25 分钟超时,超时的 cask 记为 `FAIL`,其余 cask 仍会由 `if: always()` 的步骤提交。
 
-重打包型需要 CI 能 SSH 到 ACS:私钥在仓库 Secret `ACS_SSH_KEY`(不入库),公钥在 ACS 的 `authorized_keys`。未配置该 Secret 的 fork 会跳过该 cask。ACS 上每个 cask 只保留最近 2 个历史 zip 以便回滚。
+两个 workflow 都需要 CI 能 SSH 到 ACS:私钥在仓库 Secret `ACS_SSH_KEY`(不入库),公钥在 ACS 的 `authorized_keys`。`autobump` 用它取 `arczip` / `workbuddy` 的上游数据,`autobump-iqiyi` 用它取包并上传镜像。未配置该 Secret 的 fork 会退回直连并跳过重打包型 cask。ACS 上每个 cask 只保留最近 2 个历史 zip 以便回滚。
 
 ## App Store 专属软件(非 Cask)
 
@@ -70,6 +71,7 @@ curl -fsSL 'https://itunes.apple.com/lookup?id=6762439757&country=cn' \
 
 1. 在 `Casks/<name>.rb` 添加标准 cask 定义。
 2. 在 `scripts/bump-<name>.sh` 编写上游检测脚本,并注册进 `.github/workflows/autobump.yml`,用 `bash scripts/run-bump.sh <name> bash scripts/bump-<name>.sh Casks/<name>.rb` 调用(以保留巡检汇总)。
+   - 上游若存在地域分发或境外访问受限,在脚本开头 `source "$(dirname "${BASH_SOURCE[0]}")/upstream.sh"`,用 `upstream_cat` / `upstream_sha256` / `upstream_zip_info` 取数(见 `scripts/bump-arczip.sh`、`scripts/bump-workbuddy.sh`);大文件务必在 ACS 端算摘要,不要回传 runner。
    - 上游若是新版 macOS 上无法直接安装的 DMG,参考 `scripts/bump-iqiyi.sh`(ACS 取包 → 挂载 → `ditto` 重打成 zip → SSH 上传镜像)。
    - Sparkle appcast 既支持 enclosure 属性式 `sparkle:version="..."`,也支持子元素式 `<sparkle:version>...</sparkle:version>`,解析脚本需兼容两者(见 `scripts/bump-arczip.sh`)。
 3. 本地验证 `brew install --cask ./Casks/<name>.rb` 与 `brew uninstall --cask --zap <name>`(确认 zap 路径完整)后提交 PR。

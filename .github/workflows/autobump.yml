@@ -15,12 +15,39 @@ concurrency:
 
 jobs:
   bump:
-    # 轻量直链型 cask 只需要 curl / python3 / unzip / shasum，Linux runner 即可，
+    # 轻量直链型 cask 只需要 curl / python3 / ssh，Linux runner 即可，
     # 且排队远短于 macOS。iqiyi 依赖 hdiutil/ditto/codesign，单独在
     # autobump-iqiyi.yml 的 macOS runner 上跑。
+    #
+    # arczip / workbuddy 的上游数据经 ACS 国内出口获取（见 scripts/upstream.sh）：
+    # 境外 runner 直连 download.arczip.app 会被 Cloudflare 403，且 /v2/update
+    # 对境外返回旧渠道版本。未配置 Secret 的 fork 自动退回直连。
     runs-on: ubuntu-latest
+    env:
+      ACS_HOST: acs-host
     steps:
       - uses: actions/checkout@v4
+
+      # 配置到 ACS 的免密 SSH（与 autobump-iqiyi.yml 相同）。
+      # 私钥放在仓库 Secret ACS_SSH_KEY，绝不入库；公钥需提前加入 ACS 的 authorized_keys。
+      - name: Configure SSH to ACS
+        env:
+          ACS_SSH_KEY: ${{ secrets.ACS_SSH_KEY }}
+        run: |
+          if [ -z "$ACS_SSH_KEY" ]; then echo "ACS_SSH_KEY 未配置，上游取数将退回直连"; exit 0; fi
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          printf '%s\n' "$ACS_SSH_KEY" > ~/.ssh/id_ed25519_ci
+          chmod 600 ~/.ssh/id_ed25519_ci
+          ssh-keyscan -H -t ed25519,rsa 8.130.151.172 >> ~/.ssh/known_hosts 2>/dev/null
+          cat > ~/.ssh/config <<'EOF'
+          Host acs-host
+            HostName 8.130.151.172
+            User root
+            IdentityFile ~/.ssh/id_ed25519_ci
+            IdentitiesOnly yes
+          EOF
+          chmod 600 ~/.ssh/config
+          ssh acs-host 'echo "ACS SSH 连通: $(hostname)"'
 
       # shasum 由 perl 提供；ubuntu-latest 通常自带，缺失时补装。
       - name: Ensure shasum
